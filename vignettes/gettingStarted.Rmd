@@ -1,6 +1,6 @@
 ---
-title: "Getting Started with LOLA"
-author: "Nathan Sheffield"
+title: "Getting Started with MSPC"
+author: "Julaiti Shayiding"
 date: "`r Sys.Date()`"
 vignette: >
     %\VignetteEngine{knitr::rmarkdown}
