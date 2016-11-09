@@ -1,7 +1,7 @@
 # Bioconductor Package for Multiple Sample Peak Calling
 #
 #' @title readPeakFiles
-##' @param peakFOlder set bed files to be read as GRanges objects
+#' @param  peakFolder set bed files to be read as GRanges objects
 #' @return GRanges object
 #' @export
 #' @importFrom rtracklayer import.bed
