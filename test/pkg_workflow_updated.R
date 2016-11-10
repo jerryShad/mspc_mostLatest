@@ -78,31 +78,7 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
 ##==============================================================================================
 ##' @details peakOverlapping
 ##' function implementation
-##' TODO : collect all possible overlap hit in one matrix format
-
-.peakOverlapping <- function(peakset, idx=1L, FUN=which.max, ...) {
-  # input param checking
-  if(!inherits(peakset[[1]], "GRanges")) {
-    stop("invalid input, type of entry must be GRanges objects")
-  }
-  stopifnot(is.numeric(idx))
-  # set up the entry
-  chosen <- peakset[[idx]]
-  que.hit <- as(findOverlaps(chosen), "List")
-  sup.hit <- lapply(peakset[- idx], function(ele_) {
-    ans <- as(findOverlaps(chosen, ele_), "List")
-    out.idx0 <- as(FUN(extractList(ele_$score, ans)), "List")
-    out.idx0 <- out.idx0[!is.na(out.idx0),]
-    ans <- ans[out.idx0]
-    ans
-  })
-  res <- DataFrame(c(list(que.hit), sup.hit))
-  names(res) <- c(names(peakset[idx]),names(peakset[-idx]))
-  return(res)
-}
-
-###============================================================================================
-## This quick what I want
+## I am on the right track, keep coding *_*
 
 .peakOverlapping <- function(peakset, FUN=which.max, ...) {
   # input param checking
@@ -118,11 +94,14 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
       ans <- ans[out.idx0]
       ans
     })
-    res[[i]] <- DataFrame(c(list(que=queHit), sup=supHit))
-    names(res[[i]]) <- c(names(peakset[i]),names(peakset[- i]))
+    res[[i]] = DataFrame(c(list(que=queHit), sup=supHit))
+    names(res[[i]]) = c(names(peakset[i]),names(peakset[- i]))
   }
-  res <- lapply(res, as.matrix)
-  return(res)
+  rslt <- lapply(res, function(x) as.matrix(x[names(res[[1]])]))
+  rslt <- DataFrame(rbind(rslt[[1]],
+                          unique(do.call("rbind", rslt[2: length(rslt)]))))
+  rslt <- lapply(rslt, function(x) as(x, "CompressedIntegerList"))
+  return(rslt)
 }
 
 #-----------------------------------------------------------------------------------------------
