@@ -1,8 +1,7 @@
 ## MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 ##
 ##' @title .peakOverlapping
-##' @param peakset
-##' @param cur.idx current index of peakFile used as chosen sample
+##' @param peakset peak files
 ##' @param FUN function selected by user needs when keeping most stringent peak when multiple overlap occur
 ##' @return IntegerList overlap-hit IntegerList across multiple GRanges simulanously
 ##' @export
