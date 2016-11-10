@@ -1,9 +1,9 @@
 Package: MSPC
 Type: Package
 Title: Bioconductor package for Multiple Sample Peak Calling
-Version: 0.1.0
+Version: 0.99.0
 Author: Julaiti Shayiding
-Maintainer: julaiti shayiding <julaiti.shayiding@mail.polimi.it>
+Maintainer: julaiti shayiding <j.shahidin@gmail.com>
 Description: This packages implements set of functions to retrieve overlapped enriched regions
               across multiple replicates in parallel (a.k.a, pair-wise), statistical method
               for overlapped regions. simultaneous presence of an enriched regions in replicates
