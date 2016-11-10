@@ -78,6 +78,7 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
 ##==============================================================================================
 ##' @details peakOverlapping
 ##' function implementation
+##' TODO : collect all possible overlap hit in one matrix format
 
 .peakOverlapping <- function(peakset, idx=1L, FUN=which.max, ...) {
   # input param checking
@@ -108,18 +109,16 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
 #-----------------------------------------------------------------------------------------------
 #' @description integrate hit table to remove duplicated hits
 
-t1 <- as.matrix(DataFrame(.hit_1[names(.hit_3)]))
-t2 <- as.matrix(DataFrame(.hit_2[names(.hit_3)]))
-t3 <- as.matrix(DataFrame(.hit_3))
+hitTB <- list(hitTb.1 = .hit_1,
+              hitTb.2 = .hit_2[names(.hit_1)],
+              hitTb.3 = .hit_3[names(.hit_1)])
 
-#testMe <- unique(mapply(rbind, list(t1,t2,t3)))
+hitTB <- lapply(hitTB, as.matrix)
 
-#-------------------------------------------------------
-Hit <- unique(DataFrame(rbind(t3,t2,t1)))
-Hit <- lapply(Hit, function(ele_) {
-  res <- as(ele_, "CompressedIntegerList")
-  res
-})
+Hit <- DataFrame(rbind(hitTB[[1L]],
+                       unique(rbind(hitTB[[2L]], hitTB[[3L]]))))
+
+Hit <- lapply(Hit, function(ele_) as(ele_, "CompressedIntegerList"))
 
 ##=============================================================================================
 
@@ -166,12 +165,11 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
     saved <- sapply(comb.pval, function(x) x <= tau.s)
     res <- elm[saved]
   })
+
+  # warning : do not remove duplicates, try to find pattern
+
   confirmed <- Map(extractList, peakset, Confirmed_idx)
-  .Confirmed.ERs <- lapply(confirmed, function(ele_) {
-    res <- unlist(ele_)
-    out <- res[!duplicated(res),]
-    out
-  })
+  .Confirmed.ERs <- lapply(confirmed, function(ele_) unlist(ele_))
   ## TODO
   Discarded_idx <- lapply(keepList, function(elm) {
     droped <- sapply(comb.pval, function(x) x > tau.s)
@@ -179,14 +177,25 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   })
 
   .Fisher.discPeaks <- Map(extractList, peakset, Discarded_idx)
-  .Fisher.discPeaks <- lapply(.Fisher.discPeaks, function(elm) {
-    res <- unlist(elm)
-    ans <- res[!duplicated(res),]
-    ans
-  })
+  .Fisher.discPeaks <- lapply(.Fisher.discPeaks, function(elm) unlist(elm))
   .Discarded.ERs <- suppressWarnings(mapply(c, .init.discPeaks, .Fisher.discPeaks))
-  ## TODO END !
-  ##---------------------------------------
+
+  ##-------------------------------------------------------------------------------
+  confirmed <- lapply(seq_along(all_Confirmed), function(x) {
+    if(x==1)
+      unique(all_Confirmed[[x]])
+    else
+      all_Confirmed[[x]]
+  })
+
+  discarded. <- lapply(seq_along(all_Discarded), function(x) {
+    if(x==1)
+      unique(all_Discarded[[x]])
+    else
+      all_Discarded[[x]]
+  })
+
+  ##-------------------------------------------------------------------------------
   .setPurification <- ifelse(replicate.type=="Biological",
                              res <- .Confirmed.ERs,
                              res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
