@@ -9,7 +9,6 @@
 #' @author Julaiti Shayiding
 #' @example
 
-
 .filtByIndx <- function(peakset, ovHit, replicate.type=c("Biological", "Technical"), ...) {
   # input param checking
   stopifnot(length(peakset)>0)
