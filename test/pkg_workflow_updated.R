@@ -104,21 +104,6 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
   return(rslt)
 }
 
-#-----------------------------------------------------------------------------------------------
-#' @description integrate hit table to remove duplicated hits
-
-hitTB <- list(hitTb.1 = .hit_1,
-              hitTb.2 = .hit_2[names(.hit_1)],
-              hitTb.3 = .hit_3[names(.hit_1)])
-
-hitTB <- lapply(hitTB, as.matrix)
-
-Hit <- DataFrame(rbind(hitTB[[1L]],
-                       unique(rbind(hitTB[[2L]], hitTB[[3L]]))))
-
-Hit <- lapply(Hit, function(ele_) as(ele_, "CompressedIntegerList"))
-
-
 ##=============================================================================================
 
 MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technical"), tau.s=1.0E-08, ...) {
