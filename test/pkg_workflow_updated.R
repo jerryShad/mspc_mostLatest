@@ -104,6 +104,7 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
   return(rslt)
 }
 
+#' @example Hit <- .peakOverlapping(peakset = total.ERs, FUN = which.max)
 
 ##=============================================================================================
 
