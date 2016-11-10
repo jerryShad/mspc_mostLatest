@@ -104,6 +104,7 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
   return(rslt)
 }
 
+
 ##=============================================================================================
 
 MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technical"), tau.s=1.0E-08, ...) {
