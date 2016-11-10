@@ -101,29 +101,8 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
   return(res)
 }
 
-##' @example
-.hit_1 <- .peakOverlapping(peakset = total.ERs, idx = 1L, FUN = which.max)
-.hit_2 <- .peakOverlapping(peakset = total.ERs, idx = 2L, FUN = which.max)
-.hit_3 <- .peakOverlapping(peakset = total.ERs, idx = 3L, FUN = which.max)
-
-#-----------------------------------------------------------------------------------------------
-#' @description integrate hit table to remove duplicated hits
-
-hitTB <- list(hitTb.1 = .hit_1,
-              hitTb.2 = .hit_2[names(.hit_1)],
-              hitTb.3 = .hit_3[names(.hit_1)])
-
-hitTB <- lapply(hitTB, as.matrix)
-
-Hit <- DataFrame(rbind(hitTB[[1L]],
-                       unique(rbind(hitTB[[2L]], hitTB[[3L]]))))
-
-Hit <- lapply(Hit, function(ele_) as(ele_, "CompressedIntegerList"))
-
-
 ###============================================================================================
 ## This quick what I want
-
 
 .peakOverlapping <- function(peakset, FUN=which.max, ...) {
   # input param checking
@@ -142,8 +121,23 @@ Hit <- lapply(Hit, function(ele_) as(ele_, "CompressedIntegerList"))
     res[[i]] <- DataFrame(c(list(que=queHit), sup=supHit))
     names(res[[i]]) <- c(names(peakset[i]),names(peakset[- i]))
   }
+  res <- lapply(res, as.matrix)
   return(res)
 }
+
+#-----------------------------------------------------------------------------------------------
+#' @description integrate hit table to remove duplicated hits
+
+hitTB <- list(hitTb.1 = .hit_1,
+              hitTb.2 = .hit_2[names(.hit_1)],
+              hitTb.3 = .hit_3[names(.hit_1)])
+
+hitTB <- lapply(hitTB, as.matrix)
+
+Hit <- DataFrame(rbind(hitTB[[1L]],
+                       unique(rbind(hitTB[[2L]], hitTB[[3L]]))))
+
+Hit <- lapply(Hit, function(ele_) as(ele_, "CompressedIntegerList"))
 
 
 ##=============================================================================================
