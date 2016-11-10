@@ -239,6 +239,7 @@ res <- by(DT,DT$.id,FUN = function(x) split(x,x$gr))
 ##================================================================================================
 ##' @description
 ##' This scripts how to manipulate list of confirmed peaks, discarded peaks for BH correction test
+##'
 x <- c(all_Confirmed, all_Discarded)
 ans.Reslt <- split(x, sub("_.*", "", names(x)))[sub("_.*", "", names(all_Confirmed))]
 
@@ -247,6 +248,27 @@ ans.Reslt <- split(x, sub("_.*", "", names(x)))[sub("_.*", "", names(all_Confirm
                            res <- .Confirmed.ERs,
                            res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
 
+#-------------------------------------------------------------------------------------------------
+# dummy function
+
+func <- function(L1, L2, replicate.type=c("Biological","Technical")) {
+  replicate.type = match.arg(replicate.type)
+  if(replicate.type=="Biological") {
+    res <- L1
+  } else {
+    res <- Map(function(x,y) anti_join(x,y), L1, L2)
+  }
+  return(res)
+}
+
+L1 <- Map("data.frame", confirmed.)
+L2 <- Map("data.frame", discarded.)
+
+# testme:
+.setPurif <- func(L1, L2, "Biological")
+.setPurif <- lapply(.setPurif, function(x) as(x, "GRanges"))
+
+#---------------------------------------------------------------------------------------------------
 
 .create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
   # input param checking
@@ -266,7 +288,8 @@ ans.Reslt <- split(x, sub("_.*", "", names(x)))[sub("_.*", "", names(all_Confirm
 }
 
 #' @example
-.BH_output <- Map(.create_OUTP, .setPurification)
+.BH_output <- Map(.create_OUTP, .setPurif)
+.BH_output <- lapply(.BH_output, unique)
 ##==================================================================================================
 
 
