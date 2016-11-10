@@ -120,6 +120,32 @@ Hit <- DataFrame(rbind(hitTB[[1L]],
 
 Hit <- lapply(Hit, function(ele_) as(ele_, "CompressedIntegerList"))
 
+
+###============================================================================================
+## This quick what I want
+
+
+func <- function(peakset, FUN=which.max, ...) {
+  # input param checking
+  stopifnot(inherits(peakset[[1]], "GRanges"))
+  res <- list()
+  for(i in seq_along(peakset)) {
+    que <- peakset[[i]]
+    queHit <- as(findOverlaps(que), "List")
+    supHit <- lapply(peakset[- i], function(ele_) {
+      ans <- as(findOverlaps(que, ele_), "List")
+      out.idx0 <- as(FUN(extractList(ele_$score, ans)), "List")
+      out.idx0 <- out.idx0[!is.na(out.idx0),]
+      ans <- ans[out.idx0]
+      ans
+    })
+    res[[i]] <- DataFrame(c(list(que=queHit), sup=supHit))
+    names(res[[i]]) <- c(names(peakset[i]),names(peakset[- i]))
+  }
+  return(res)
+}
+
+
 ##=============================================================================================
 
 MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technical"), tau.s=1.0E-08, ...) {
