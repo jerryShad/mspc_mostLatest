@@ -125,7 +125,7 @@ Hit <- lapply(Hit, function(ele_) as(ele_, "CompressedIntegerList"))
 ## This quick what I want
 
 
-func <- function(peakset, FUN=which.max, ...) {
+.peakOverlapping <- function(peakset, FUN=which.max, ...) {
   # input param checking
   stopifnot(inherits(peakset[[1]], "GRanges"))
   res <- list()
