@@ -104,7 +104,8 @@ total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
   return(rslt)
 }
 
-#' @example Hit <- .peakOverlapping(peakset = total.ERs, FUN = which.max)
+#' @example
+#' Hit <- .peakOverlapping(peakset = total.ERs, FUN = which.max)
 
 ##=============================================================================================
 
@@ -167,11 +168,13 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   .Discarded.ERs <- suppressWarnings(mapply(c, .init.discPeaks, .Fisher.discPeaks))
 
   ##-------------------------------------------------------------------------------
+  ## FIXME : optimize me
   confirmed <- lapply(seq_along(all_Confirmed), function(x) {
-    if(x==1)
+    if(x==1) {
       unique(all_Confirmed[[x]])
-    else
+    } else {
       all_Confirmed[[x]]
+    }
   })
 
   discarded. <- lapply(seq_along(all_Discarded), function(x) {
@@ -185,6 +188,26 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   .setPurification <- ifelse(replicate.type=="Biological",
                              res <- .Confirmed.ERs,
                              res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
+
+
+  .create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
+    # input param checking
+    stopifnot(class(peaks)=="GRanges")
+    stopifnot(is.numeric(alpha))
+    pAdjustMethod = match.arg(pAdjustMethod)
+    if(is.null(peaks$p.value)) {
+      stop("required slot is missing")
+    } else {
+      p <- peaks$p.value
+      p.adj <- p.adjust(p, method = pAdjustMethod)
+      peaks$p.adj <- p.adj
+      rslt <- split(peaks, ifelse(peaks$p.adj <= alpha,
+                                  "pass", "fail"))
+      return(rslt)
+    }
+  }
+  #' @example
+  .BH_output <- Map(.create_OUTP, .setPurification)
 
   ##---------------------------------------
   rslt <- c(.Confirmed.ERs, .Discarded.ERs)
@@ -220,32 +243,11 @@ x <- c(all_Confirmed, all_Discarded)
 ans.Reslt <- split(x, sub("_.*", "", names(x)))[sub("_.*", "", names(all_Confirmed))]
 
 ##================================================================================================
+.setPurification <- ifelse(replicate.type=="Biological",
+                           res <- .Confirmed.ERs,
+                           res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
 
-func <- function(L1, L2, replicate.type=c("Biological","Technical"))
-{
-  # input param checking
-  if(!is(L1[[1]], "GRanges") || !is(L1[1], "GRanges")) {
-    stop("invalid input, entry must be GRanges")
-  }
-  replicate.type = match.arg(replicate.type)
-  if(!type %in% c("Biological","Technical")){
-    stop("wrong type, please ")
-  }
-  if(replicate.type=="Biological") {
-    res <- L1
-  } else {
-    res <- Map(function(x,y) anti_join(x,y), L1, L2)
-  }
-  return(res)
-}
 
-L1 <- Map("data.frame", all_Confirmed)
-L2 <- Map("data.frame", all_Discarded)
-
-# testme:
-for_BH <- func(L1, L2, "Biological")
-
-#---------------------------------------------------------------------------------------------------
 .create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
   # input param checking
   stopifnot(class(peaks)=="GRanges")
@@ -257,16 +259,14 @@ for_BH <- func(L1, L2, "Biological")
     p <- peaks$p.value
     p.adj <- p.adjust(p, method = pAdjustMethod)
     peaks$p.adj <- p.adj
+    rslt <- split(peaks, ifelse(peaks$p.adj <= alpha,
+                                "pass", "fail"))
+    return(rslt)
   }
-  keepMe <- sapply(peaks, function(elm) {
-    res <- elm$p.adj < alpha
-  })
-  ans <- list(
-    keep=peaks[keepMe],
-    droped=peaks[!keepMe])
-  return(ans)
 }
 
+#' @example
+.BH_output <- Map(.create_OUTP, .setPurification)
 ##==================================================================================================
 
 
