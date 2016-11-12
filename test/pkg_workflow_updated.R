@@ -25,37 +25,43 @@ readPeakFiles <- function(peakFolder, verbose=FALSE, ...) {
 }
 
 ##' @examples
-myData <- readPeakFiles(peakFolder = "data/")
+myData <- readPeakFiles(peakFolder = "test/testData/")
 
 ##==============================================================================================
 ##' @details splitting GRanges
 ##' function implementation
+##' FIXME : S4 subscript error
 
-.denoise_peakFiles <- function(peakset, tau.w=1.0E-04, verbose=FALSE, ...) {
+.denoise.ERs <- function(grs, tau.w=1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
+  # check input param
+  stopifnot(class(grs[[1L]])=="GRanges")
+  stopifnot(length(grs)>0)
+  stopifnot(is.numeric(tau.w))
   if (verbose) {
     cat(">> filter out all background noise peaks whose pvalue above threshold \t\t",
         format(Sys.time(), "%Y-%m-%d %X"), "\n")
   }
-  if(!inherits(peakset[[1]], "GRanges")) {
-    stop("file entry was not GRanges objects, invalid input")
+  if(!dir.exists(outDir)) {
+    dir.create(file.path(outDir))
+    setwd(file.path(outDir))
   }
-  stopifnot(is.numeric(tau.w))
-  #dir.create(file.path(outDir), showWarnings = FALSE)
-  #setwd(file.path(outDir))
-  res <- lapply(peakset, function(ele_) {
-    if(is.null(ele_$p.value)) {
-      ele_ <- .pvalueConversion(ele_, pvalueBase = 1L)
+  res <- lapply(grs, function(x) {
+    if(is.null(x$p.value)) {
+      x <- .pvalueConversion(x, pvalueBase = 1L)
+      .gr <- grs[[x]]
+      .grNM <- names(grs)[x]
+      .noiseERs <- .gr[.gr$p.value > tau.w]
+      export.bed(.noiseERs, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM), row.names = FALSE)
+      .ERs <- .gr[.gr$p.value <= tau.w]
+      return(.ERs)
     }
-    DF <- as.data.frame(ele_)
-    require(dplyr)
-    DF %>%
-      filter(p.value > tau.w) %>%
-      export.bed(., sprintf("BackgroundNoise%s.bed", DF), row.names = FALSE)
-    total.ERs <- filter(DF, p.value <= tau.w)
-    total.ERs <- as(total.ERs, "GRanges")
-    return(total.ERs)
   })
+  rslt <- setNames(res, names(grs))
+  return(rslt)
 }
+
+#' @example
+total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-08, .fileName = "noisePeak", outDir = "test/")
 
 ##========================================================
 
@@ -71,9 +77,6 @@ myData <- readPeakFiles(peakFolder = "data/")
   }
   return(x)
 }
-
-##' @example
-total.ERs <- .denoise_peakFiles(peakset = myData, tau.w = 1.0E-04)
 
 ##==============================================================================================
 ##' @details peakOverlapping
@@ -154,7 +157,6 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   })
 
   # warning : do not remove duplicates, try to find pattern
-
   confirmed <- Map(extractList, peakset, Confirmed_idx)
   .Confirmed.ERs <- lapply(confirmed, function(ele_) unlist(ele_))
   ## TODO
