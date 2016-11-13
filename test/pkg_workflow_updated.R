@@ -34,9 +34,9 @@ myData <- readPeakFiles(peakFolder = "test/testData/")
 
 .denoise.ERs <- function(grs, tau.w=1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
   # check input param
-  stopifnot(class(grs[[1L]])=="GRanges")
-  stopifnot(length(grs)>0)
-  stopifnot(is.numeric(tau.w))
+  #stopifnot(class(grs[[1L]])=="GRanges")
+  #stopifnot(length(grs)>0)
+  #stopifnot(is.numeric(tau.w))
   if (verbose) {
     cat(">> filter out all background noise peaks whose pvalue above threshold \t\t",
         format(Sys.time(), "%Y-%m-%d %X"), "\n")
@@ -45,20 +45,43 @@ myData <- readPeakFiles(peakFolder = "test/testData/")
     dir.create(file.path(outDir))
     setwd(file.path(outDir))
   }
-  res <- lapply(grs, function(x) {
+  res <- lapply(seq_along(grs), function(x) {
     if(is.null(x$p.value)) {
       x <- .pvalueConversion(x, pvalueBase = 1L)
       .gr <- grs[[x]]
       .grNM <- names(grs)[x]
-      .noiseERs <- .gr[.gr$p.value > tau.w]
-      export.bed(.noiseERs, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM), row.names = FALSE)
-      .ERs <- .gr[.gr$p.value <= tau.w]
-      return(.ERs)
+      .drop <- .gr[.gr$score < threshold]
+      export.bed(.drop, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM))
+      .keep <- .gr[.gr$score >= threshold]
+      return(.keep)
     }
   })
   rslt <- setNames(res, names(grs))
   return(rslt)
 }
+
+## This works
+myFunc <- function(grs, threshold=8, .fileName="", outDir=getwd(),...) {
+  if(!dir.exists(outDir)) {
+    dir.create(file.path(outDir))
+    setwd(file.path(outDir))
+  }
+  res <- lapply(seq_along(grs), function(x) {
+    .gr <- grs[[x]]
+    .grNM <- names(grs)[x]
+    .drop <- .gr[.gr$score < threshold]
+    export.bed(.drop, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM))
+    .keep <- .gr[.gr$score >= threshold]
+    return(.keep)
+  })
+  rslt <- setNames(res, names(grs))
+  return(rslt)
+}
+
+#' @example
+myFunc(myData, tau.w=8, .fileName = "drop", outDir = getwd())
+
+## THE END
 
 #' @example
 total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-08, .fileName = "noisePeak", outDir = "test/")
