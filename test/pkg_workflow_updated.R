@@ -17,6 +17,7 @@ readPeakFiles <- function(peakFolder, verbose=FALSE, ...) {
   f.read <- setNames(
     lapply(files, function(ele_) {
       res <- as(import.bed(ele_), "GRanges")
+      res <- .pvalueConversion(res, 1L)
 
     }), tools::file_path_sans_ext(basename(files))
   )
@@ -27,67 +28,8 @@ readPeakFiles <- function(peakFolder, verbose=FALSE, ...) {
 ##' @examples
 myData <- readPeakFiles(peakFolder = "test/testData/")
 
-##==============================================================================================
-##' @details splitting GRanges
-##' function implementation
-##' FIXME : S4 subscript error
-
-.denoise.ERs <- function(grs, tau.w=1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
-  # check input param
-  #stopifnot(class(grs[[1L]])=="GRanges")
-  #stopifnot(length(grs)>0)
-  #stopifnot(is.numeric(tau.w))
-  if (verbose) {
-    cat(">> filter out all background noise peaks whose pvalue above threshold \t\t",
-        format(Sys.time(), "%Y-%m-%d %X"), "\n")
-  }
-  if(!dir.exists(outDir)) {
-    dir.create(file.path(outDir))
-    setwd(file.path(outDir))
-  }
-  res <- lapply(seq_along(grs), function(x) {
-    if(is.null(x$p.value)) {
-      x <- .pvalueConversion(x, pvalueBase = 1L)
-      .gr <- grs[[x]]
-      .grNM <- names(grs)[x]
-      .drop <- .gr[.gr$score < threshold]
-      export.bed(.drop, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM))
-      .keep <- .gr[.gr$score >= threshold]
-      return(.keep)
-    }
-  })
-  rslt <- setNames(res, names(grs))
-  return(rslt)
-}
-
-## This works
-myFunc <- function(grs, threshold=8, .fileName="", outDir=getwd(),...) {
-  if(!dir.exists(outDir)) {
-    dir.create(file.path(outDir))
-    setwd(file.path(outDir))
-  }
-  res <- lapply(seq_along(grs), function(x) {
-    .gr <- grs[[x]]
-    .grNM <- names(grs)[x]
-    .drop <- .gr[.gr$score < threshold]
-    export.bed(.drop, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM))
-    .keep <- .gr[.gr$score >= threshold]
-    return(.keep)
-  })
-  rslt <- setNames(res, names(grs))
-  return(rslt)
-}
-
-#' @example
-myFunc(myData, tau.w=8, .fileName = "drop", outDir = getwd())
-
-## THE END
-
-#' @example
-total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-08, .fileName = "noisePeak", outDir = "test/")
-
-##========================================================
-
+#-----------------------------------------------------------------------------------------------
+#' @description pvalueConversion
 .pvalueConversion <- function(x, pvalueBase = 1L, ...) {
   stopifnot(class(x) == "GRanges")
   stopifnot(is.numeric(pvalueBase))
@@ -100,6 +42,38 @@ total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-08, .fileName = "noisePeak", outD
   }
   return(x)
 }
+
+##==============================================================================================
+##' @details splitting GRanges
+##' function implementation
+
+.denoise.ERs <- function(grs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
+  # check input param
+  stopifnot(class(grs[[1L]])=="GRanges")
+  stopifnot(length(grs)>0)
+  stopifnot(is.numeric(tau.w))
+  if (verbose) {
+    cat(">> filter out all background noise peaks whose pvalue above threshold \t\t",
+        format(Sys.time(), "%Y-%m-%d %X"), "\n")
+  }
+  if(!dir.exists(outDir)) {
+    dir.create(file.path(outDir))
+    setwd(file.path(outDir))
+  }
+  res <- lapply(seq_along(grs), function(x) {
+    .gr <- grs[[x]]
+    .grNM <- names(grs)[x]
+    .drop <- .gr[.gr$p.value > tau.w]
+    export.bed(.drop, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM))
+    .keep <- .gr[.gr$p.value <= tau.w]
+    return(.keep)
+  })
+  rslt <- setNames(res, names(grs))
+  return(rslt)
+}
+
+#' @example
+total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-04, .fileName = "noisePeak", outDir = "test/")
 
 ##==============================================================================================
 ##' @details peakOverlapping
