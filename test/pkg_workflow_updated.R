@@ -6,13 +6,12 @@
 ##' @details read bed files as GRanges objects from file directory
 ##' function implementation
 
-readPeakFiles <- function(peakFolder, verbose=FALSE, ...) {
+readPeakFiles <- function(peakFolder, pvalueBase=1L,verbose=FALSE, ...) {
   # input param checking
-  require
   if(missing(peakFolder)) {
     stop("input param is missing!")
   }
-  stopifnot(length(peakFolder)>=1)
+  stopifnot(length(peakFolder)>0)
   files <- list.files(peakFolder, full.names = TRUE, "\\.bed$")
   f.read <- setNames(
     lapply(files, function(ele_) {
@@ -26,7 +25,7 @@ readPeakFiles <- function(peakFolder, verbose=FALSE, ...) {
 }
 
 ##' @examples
-myData <- readPeakFiles(peakFolder = "test/testData/")
+myData <- readPeakFiles(peakFolder = "test/testData/", pvalueBase = 1L)
 
 #-----------------------------------------------------------------------------------------------
 #' @description pvalueConversion
@@ -117,11 +116,13 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   min.c <- ifelse(replicate.type=="Biological",
                   length(peakset)-1,
                   length(peakset))
+
   cnt.ovHit <- as.matrix(Reduce('+', lapply(ovHit, lengths)))
   keepMe <- cnt.ovHit >= min.c
   dropList <- lapply(ovHit, function(ele_) ele_[!keep_me])
   init.discardPeaks <- Map(unlist,
                            mapply(extractList, peakset, dropList))
+
   keepList <- lapply(ovHit, function(x) x[keepMe])
   pval_List <- mapply(.get.pvalue, keepList, peakset)
   .helper.PV <- function(p.list) {
@@ -143,6 +144,7 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
     })
   )
   comb.pval <- as.matrix(comb.pval)
+  ##--------------------------------------------------------------------------------
   ## TODO BEGIN : FIXME: to make more compatible
   Confirmed_idx <- lapply(keepList, function(elm) {
     saved <- sapply(comb.pval, function(x) x <= tau.s)
@@ -150,35 +152,29 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   })
 
   # warning : do not remove duplicates, try to find pattern
-  confirmed <- Map(extractList, peakset, Confirmed_idx)
-  .Confirmed.ERs <- lapply(confirmed, function(ele_) unlist(ele_))
-  ## TODO
+  .Confirmed.ERs <- Map(unlist,
+                        mapply(extractList, peakset, Confirmed_idx))
+  confirmed <- lapply(seq_along(.Confirmed.ERs), function(x) {
+    res <- ifelse(x==1,
+                  unique(.Confirmed.ERs[[x]]),
+                  .Confirmed.ERs[[x]])
+  })
+  ##================================================================================
   Discarded_idx <- lapply(keepList, function(elm) {
     droped <- sapply(comb.pval, function(x) x > tau.s)
     res <- elm[droped]
   })
 
-  .Fisher.discPeaks <- Map(extractList, peakset, Discarded_idx)
-  .Fisher.discPeaks <- lapply(.Fisher.discPeaks, function(elm) unlist(elm))
+  .Fisher.discPeaks <- Map(unlist,
+                           mapply(extractList, peakset, Discarded_idx))
+
   .Discarded.ERs <- suppressWarnings(mapply(c, .init.discPeaks, .Fisher.discPeaks))
 
-  ##-------------------------------------------------------------------------------
-  ## FIXME : optimize me
-  confirmed <- lapply(seq_along(.Confirmed.ERs), function(x) {
-    if(x==1) {
-      unique(.Confirmed.ERs[[x]])
-    } else {
-      .Confirmed.ERs[[x]]
-    }
-  })
-
   discarded. <- lapply(seq_along(.Discarded.ERs), function(x) {
-    if(x==1)
-      unique(.Discarded.ERs[[x]])
-    else
-      .Discarded.ERs[[x]]
+    res <- ifelse(x==1,
+                  unique(.Discarded.ERs[[x]]),
+                  .Discarded.ERs[[x]])
   })
-
   ##-------------------------------------------------------------------------------
   .setPurification <- ifelse(replicate.type=="Biological",
                              res <- .Confirmed.ERs,
