@@ -4,10 +4,9 @@
 #' This package is designed for chip-seq data analysis
 #'
 #' \tabular{ll}{ Package: \tab MSPC\cr Type: \tab Package\cr Version: \tab
-#' 0.99.99\cr Date: \tab 15-11-2016\cr biocViews:\tab MSPC,
-#' Annotation, Software\cr Depends:\tab \cr Imports: \tab methods, ggplot2
-#' \cr Suggests:\tab clusterProfiler, GOSemSim\cr License: \tab
-#' Artistic-2.0\cr }
+#' 0.99.0\cr Date: \tab 15-11-2016\cr biocViews:\tab MSPC,
+#' Annotation, Software\cr Depends:\tab \cr Imports: \tab methods, extractList, findOverlaps
+#' \cr License: \tab GPL-3.0\cr }
 #'
 #' @name MSPC-package
 #' @aliases Multiple Sample Peak Calling
