@@ -107,8 +107,7 @@ total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-04, .fileName = "noisePeak", outD
 #' @example
 #' Hit <- .peakOverlapping(peakset = total.ERs, FUN = which.max)
 
-##=============================================================================================
-
+##==========================================================================================================
 MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technical"), tau.s=1.0E-08, ...) {
   # input param checking
   stopifnot(length(peakset)>0)
