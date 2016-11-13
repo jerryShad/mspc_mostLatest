@@ -119,13 +119,10 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
                   length(peakset))
   cnt.ovHit <- as.matrix(Reduce('+', lapply(ovHit, lengths)))
   keepMe <- cnt.ovHit >= min.c
-
   dropList <- lapply(ovHit, function(ele_) ele_[!keep_me])
   init.discardPeaks <- Map(unlist,
                            mapply(extractList, peakset, dropList))
-
   keepList <- lapply(ovHit, function(x) x[keepMe])
-
   pval_List <- mapply(.get.pvalue, keepList, peakset)
   .helper.PV <- function(p.list) {
     res <- sapply(p.list, function(x) {
@@ -146,7 +143,7 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
     })
   )
   comb.pval <- as.matrix(comb.pval)
-  ## FIXME: to make more compatible
+  ## TODO BEGIN : FIXME: to make more compatible
   Confirmed_idx <- lapply(keepList, function(elm) {
     saved <- sapply(comb.pval, function(x) x <= tau.s)
     res <- elm[saved]
@@ -167,26 +164,25 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
 
   ##-------------------------------------------------------------------------------
   ## FIXME : optimize me
-  confirmed <- lapply(seq_along(all_Confirmed), function(x) {
+  confirmed <- lapply(seq_along(.Confirmed.ERs), function(x) {
     if(x==1) {
-      unique(all_Confirmed[[x]])
+      unique(.Confirmed.ERs[[x]])
     } else {
-      all_Confirmed[[x]]
+      .Confirmed.ERs[[x]]
     }
   })
 
-  discarded. <- lapply(seq_along(all_Discarded), function(x) {
+  discarded. <- lapply(seq_along(.Discarded.ERs), function(x) {
     if(x==1)
-      unique(all_Discarded[[x]])
+      unique(.Discarded.ERs[[x]])
     else
-      all_Discarded[[x]]
+      .Discarded.ERs[[x]]
   })
 
   ##-------------------------------------------------------------------------------
   .setPurification <- ifelse(replicate.type=="Biological",
                              res <- .Confirmed.ERs,
                              res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
-
 
   .create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
     # input param checking
