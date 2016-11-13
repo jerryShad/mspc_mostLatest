@@ -22,8 +22,7 @@ readPeakFiles <- function(peakFolder, verbose=FALSE, ...) {
       }
     }), tools::file_path_sans_ext(basename(files))
   )
-  res <- f.read
-  return(res)
+  return(f.read)
 }
 
 ##' @examples
