@@ -28,7 +28,7 @@
 }
 
 #' example
-#' gr <- GRanges( seqnames=Rle("chr1", 4),ranges=IRanges(c(3,33,54,91), c(23,42,71,107)),
-#'               rangeName=c("a1", "a4", "a7", "a11"), p.value=c(1e-22, 1e-6,1e-13, 1e-7))
+## gr <- GRanges( seqnames=Rle("chr1", 4),ranges=IRanges(c(3,33,54,91), c(23,42,71,107)),
+##               rangeName=c("a1", "a4", "a7", "a11"), p.value=c(1e-22, 1e-6,1e-13, 1e-7))
 
-#' .FDR.stats(peaks = gr, pAdjustMethod = "BH", alpha = 0.05)
+## .FDR.stats(peaks = gr, pAdjustMethod = "BH", alpha = 0.05)
