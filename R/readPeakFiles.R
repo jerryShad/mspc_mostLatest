@@ -11,6 +11,8 @@
 #' @importFrom tools file_path_sans_ext
 #' @description
 #' reading bed format peak files as GRanges object to ease genomic interval manipulation
+#' @usage
+#' readPeakfiles(peakFolder, pvalueBase)
 #' @author  Julaiti Shayiding
 
 readPeakFiles <- function(peakFolder, pvalueBase = 1L, verbose=FALSE, ...) {

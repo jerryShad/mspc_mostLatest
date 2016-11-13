@@ -2,15 +2,17 @@
 ##
 ##' @title .peakOverlapping
 ##' @param peakset peak files
-##' @param FUN function selected by user needs when keeping most stringent peak when multiple overlap occur
+##' @param FUN parameter for keeping most stringent peaks or least stringent overlapped peaks
 ##' @return IntegerList overlap-hit IntegerList across multiple GRanges simulanously
 ##' @export
 ##' @importFrom GenomicRanges findOverlaps
 ##' @importFrom XVector extractList
 ##' @importfrom rtracklayer score
-##' @importFrom IRanges which.min
+##' @importFrom IRanges which.min, which.max, as.matrix
+##' @usage .peakOverlapping(peakset, which.max)
 ##' @author Julaiti Shayiding
 ##' @example
+## .peakOverlapping(peakset = total.ERs, FUN = which.max)
 
 .peakOverlapping <- function(peakset, FUN=which.max, ...) {
   # input param checking

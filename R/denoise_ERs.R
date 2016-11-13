@@ -10,6 +10,8 @@
 ##' @return GRangesList with validated peakInterval
 ##' @export
 ##' @importFrom rtracklayer export.bed
+##' @usage
+##' .denoise.ERs(grs, tau.w, .fileName="", outDir)
 ##' @author Julaiti Shayiding
 
 
