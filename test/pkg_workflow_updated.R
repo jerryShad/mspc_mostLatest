@@ -16,9 +16,10 @@ readPeakFiles <- function(peakFolder, verbose=FALSE, ...) {
   files <- list.files(peakFolder, full.names = TRUE, "\\.bed$")
   f.read <- setNames(
     lapply(files, function(ele_) {
-      res <- as(import.bed(ele_), "GRanges")
-      res <- .pvalueConversion(res, 1L)
-
+      .gr <- as(import.bed(ele_), "GRanges")
+      if(is.null(.gr$p.value)) {
+        .gr <- .pvalueConversion(.gr, 1L)
+      }
     }), tools::file_path_sans_ext(basename(files))
   )
   res <- f.read
