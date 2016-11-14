@@ -119,10 +119,11 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
 
   cnt.ovHit <- as.matrix(Reduce('+', lapply(ovHit, lengths)))
   keepMe <- cnt.ovHit >= min.c
+  ##
   dropList <- lapply(ovHit, function(ele_) ele_[!keep_me])
   init.discardPeaks <- Map(unlist,
                            mapply(extractList, peakset, dropList))
-
+  ##
   keepList <- lapply(ovHit, function(x) x[keepMe])
   pval_List <- mapply(.get.pvalue, keepList, peakset)
   .helper.PV <- function(p.list) {
@@ -150,35 +151,45 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
     saved <- sapply(comb.pval, function(x) x <= tau.s)
     res <- elm[saved]
   })
-
-  # warning : do not remove duplicates, try to find pattern
   .Confirmed.ERs <- Map(unlist,
                         mapply(extractList, peakset, Confirmed_idx))
-  confirmed <- lapply(seq_along(.Confirmed.ERs), function(x) {
-    res <- ifelse(x==1,
-                  unique(.Confirmed.ERs[[x]]),
-                  .Confirmed.ERs[[x]])
+
+  .Confirmed.ERs <-
+    lapply(seq_along(.Confirmed.ERs), function(x) {
+      #
+      if(x==1) {
+        unique(.Confirmed.ERs[[x]])
+      } else {
+        .Confirmed.ERs[[x]]
+      }
   })
+  # TODO: export .confirmed.ERs as BED file into desired directory
+
   ##================================================================================
   Discarded_idx <- lapply(keepList, function(elm) {
     droped <- sapply(comb.pval, function(x) x > tau.s)
     res <- elm[droped]
   })
-
   .Fisher.discPeaks <- Map(unlist,
                            mapply(extractList, peakset, Discarded_idx))
-
   .Discarded.ERs <- suppressWarnings(mapply(c, .init.discPeaks, .Fisher.discPeaks))
 
-  discarded. <- lapply(seq_along(.Discarded.ERs), function(x) {
-    res <- ifelse(x==1,
-                  unique(.Discarded.ERs[[x]]),
-                  .Discarded.ERs[[x]])
+  .Discarded.ERs <- lapply(seq_along(.Discarded.ERs), function(x) {
+    if(x==1)
+      unique(.Discarded.ERs[[x]])
+    else
+      .Discarded.ERs[[x]]
   })
+  .Discarded.ERs <- setNames(.Discarded.ERs, names(.Fisher.discPeaks))
+
+  # TODO : export .discarded.ERs as BED File into desired directory
+
   ##-------------------------------------------------------------------------------
+  ## Note: to use anti_join function, needed to be casted as data.frame
   .setPurification <- ifelse(replicate.type=="Biological",
                              res <- .Confirmed.ERs,
                              res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
+  .setPurification <- lapply(.setPurification, function(x) as(x, "GRanges"))
 
   .create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
     # input param checking
@@ -230,8 +241,9 @@ res <- by(DT,DT$.id,FUN = function(x) split(x,x$gr))
 ##' @description
 ##' This scripts how to manipulate list of confirmed peaks, discarded peaks for BH correction test
 ##'
-x <- c(all_Confirmed, all_Discarded)
-ans.Reslt <- split(x, sub("_.*", "", names(x)))[sub("_.*", "", names(all_Confirmed))]
+
+x <- c(.confirmedERs, .discardedERs)
+ans.Reslt <- split(x, sub("_.*", "", names(x)))[sub("_.*", "", names(.confirmedERs))]
 
 ##================================================================================================
 .setPurification <- ifelse(replicate.type=="Biological",
