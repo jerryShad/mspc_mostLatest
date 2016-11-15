@@ -292,6 +292,26 @@ L2 <- Map("data.frame", discarded.)
 #' @example
 .BH_output <- Map(.create_OUTP, .setPurif)
 .BH_output <- lapply(.BH_output, unique)
-##==================================================================================================
+##======================================================================================================
+## generate list of desired output BED files
 
+both <- do.call("rbind", c(.Confirmed.ERs, .Discarded.ERs))
+cn <- c("letter", "confirmed", "seq")
+DF <- cbind(read.table(text = chartr("_", ".", rownames(both)), sep = ".", col.names = cn), both)
+
+DF <- transform(DF, stringency = ifelse(p.value <= tau.s, "Stringent", "Weak"))
+
+.res.out <- by(DF, DF[c("letter", "confirmed", "stringency")],
+           function(x) export.bed(x[-(1:3)],
+                                 sprintf("%s_%s_%s.csv", x$letter[1], x$confirmed[1], x$stringency[1])))
+
+## alternative : I could apply below solution for list of confirmed peaks
+
+junk <- lapply(names(.Confired.ERs), function(nm) {
+  mapply(export.bed,
+         .Confirmed.ERs[[nm]],
+         paste0(nm, "_", names(.res_accepted[[nm]]), ".bed"))
+})
+
+##=======================================================================================================
 
