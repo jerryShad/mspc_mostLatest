@@ -301,9 +301,9 @@ DF <- cbind(read.table(text = chartr("_", ".", rownames(both)), sep = ".", col.n
 
 DF <- transform(DF, stringency = ifelse(p.value <= tau.s, "Stringent", "Weak"))
 
-.res.out <- by(DF, DF[c("letter", "confirmed", "stringency")],
+.res.out <- by(DF, DF[c("letter", "stringency", "confirmed")],
            function(x) export.bed(x[-(1:3)],
-                                 sprintf("%s_%s_%s.csv", x$letter[1], x$confirmed[1], x$stringency[1])))
+                                 sprintf("%s_%s_%s.csv", x$letter[1], x$stringency[1], x$confirmed[1])))
 
 ## alternative : I could apply below solution for list of confirmed peaks
 
