@@ -1,34 +1,43 @@
 # MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 #
 #' @title .create_OUTP
-#' @param peak GRanges objects
+#' @param peakset GRangeList or list of data.frame objects
 #' @param pAdjustMethod adjusted pvalue for multiple comparison
 #' @param alpha threhold threshold value that keep the peaks below this value
-#' @return GRanges
+#' @return GRangeList
 #' @export
 #' @importFrom stats, p.adjust
+#' @importFrom rtracklayer export.bed
 #' @author Julaiti Shayiding
 #' @example
 
-.FDR.stats <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
-  # input param checking
-  stopifnot(class(peaks)=="GRanges")
-  stopifnot(is.numeric(alpha))
+.FDR.stats <- function(peakset, pAdjustMethod="BH", threshold=0.05, ...) {
+  # check input param
+  stopifnot(length(peakset)>0)
+  stopifnot(inherits(peakset[[1L]], "GRanges"))
   pAdjustMethod = match.arg(pAdjustMethod)
-  if(is.null(peaks$p.value)) {
-    stop("required slot is missing")
-  } else {
-    p <- peaks$p.value
-    p.adj <- p.adjust(p, method = pAdjustMethod)
-    peaks$p.adj <- p.adj
-    rslt <- split(peaks, ifelse(peaks$p.adj <= alpha,
-                                "pass", "fail"))
-    return(rslt)
-  }
+  stopifnot(is.numeric(threshold))
+  res <- lapply(peakset, function(ele_) {
+    if(is.null(ele_$p.value)) {
+      stop("p.value is required")
+    } else {
+      o <- ele_$p.value
+      p.adj <- p.adjust(p, method = "BH")
+      ele_$p.adj <- p.adj
+      .filt <- split(ele_,
+                     ifelse(ele_$p.adj <= threshold,
+                            "BH_Pass", "BH_Failed"))
+      return(.filt)
+    }
+  })
+  rslt <- lapply(names(res), function(ele_) {
+    mapply(export.bed,
+           res[[ele_]],
+           paste0(ele_, "_", names(res[[ele_]]), ".bed"))
+  })
+  rslt <- lapply(rslt, unique)
+  return(rslt)
 }
 
 #' example
-## gr <- GRanges( seqnames=Rle("chr1", 4),ranges=IRanges(c(3,33,54,91), c(23,42,71,107)),
-##               rangeName=c("a1", "a4", "a7", "a11"), p.value=c(1e-22, 1e-6,1e-13, 1e-7))
-
-## .FDR.stats(peaks = gr, pAdjustMethod = "BH", alpha = 0.05)
+## .FDR.stats(peakset = grs, pAdjustMethod = "BH", alpha = 0.05, ...)

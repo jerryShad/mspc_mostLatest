@@ -153,16 +153,8 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   })
   .Confirmed.ERs <- Map(unlist,
                         mapply(extractList, peakset, Confirmed_idx))
-
-  .Confirmed.ERs <-
-    lapply(seq_along(.Confirmed.ERs), function(x) {
-      #
-      if(x==1) {
-        unique(.Confirmed.ERs[[x]])
-      } else {
-        .Confirmed.ERs[[x]]
-      }
-  })
+  .Confirmed.ERs[[1L]] <- unique(.Confirmed.ERs[[1L]])
+  .Confirmed.ERs <- setnames(.Confirmed.ERs, names(total.ERs))
   # TODO: export .confirmed.ERs as BED file into desired directory
 
   ##================================================================================
@@ -173,15 +165,8 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   .Fisher.discPeaks <- Map(unlist,
                            mapply(extractList, peakset, Discarded_idx))
   .Discarded.ERs <- suppressWarnings(mapply(c, .init.discPeaks, .Fisher.discPeaks))
-
-  .Discarded.ERs <- lapply(seq_along(.Discarded.ERs), function(x) {
-    if(x==1)
-      unique(.Discarded.ERs[[x]])
-    else
-      .Discarded.ERs[[x]]
-  })
+  .Discarded.ERs[[1L]] <- unique(.Discarded.ERs[[1L]])
   .Discarded.ERs <- setNames(.Discarded.ERs, names(.Fisher.discPeaks))
-
   # TODO : export .discarded.ERs as BED File into desired directory
 
   ##-------------------------------------------------------------------------------
@@ -191,29 +176,36 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
                              res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
   .setPurification <- lapply(.setPurification, function(x) as(x, "GRanges"))
 
-  .create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
-    # input param checking
-    stopifnot(class(peaks)=="GRanges")
-    stopifnot(is.numeric(alpha))
+  #--------------------------------------------------------------------------------
+  # implementation for BH correction test
+  .FDR.stats <- function(peakset, pAdjustMethod="BH", threshold=0.05, ...) {
+    # check input param
+    stopifnot(length(peakset)>0)
+    stopifnot(inherits(peakset[[1L]], "GRanges"))
     pAdjustMethod = match.arg(pAdjustMethod)
-    if(is.null(peaks$p.value)) {
-      stop("required slot is missing")
-    } else {
-      p <- peaks$p.value
-      p.adj <- p.adjust(p, method = pAdjustMethod)
-      peaks$p.adj <- p.adj
-      rslt <- split(peaks, ifelse(peaks$p.adj <= alpha,
-                                  "pass", "fail"))
-      return(rslt)
-    }
+    stopifnot(is.numeric(threshold))
+    res <- lapply(peakset, function(ele_) {
+      if(is.null(ele_$p.value)) {
+        stop("p.value is required")
+      } else {
+        o <- ele_$p.value
+        p.adj <- p.adjust(p, method = "BH")
+        ele_$p.adj <- p.adj
+        .filt <- split(ele_,
+                       ifelse(ele_$p.adj <= threshold,
+                              "BH_Pass", "BH_Failed"))
+        return(.filt)
+      }
+    })
+    rslt <- lapply(names(res), function(ele_) {
+      mapply(export.bed,
+             res[[ele_]],
+             paste0(ele_, "_", names(res[[ele_]]), ".bed"))
+    })
+    rslt <- lapply(rslt, unique)
+    return(rslt)
   }
-  #' @example
-  .BH_output <- Map(.create_OUTP, .setPurification)
-
-  ##---------------------------------------
-  rslt <- c(.Confirmed.ERs, .Discarded.ERs)
-  ans.Reslt <- split(rslt, sub("_.*", "", names(rslt)))[sub("_.*", "", names(.Confirmed.ERs))]
-  return(ans.Reslt)
+  ## TODO END
 }
 
 .get.pvalue <- function(hit, obj, verbose=FALSE, ...) {
@@ -224,52 +216,11 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
 }
 
 ##================================================================================================
-##' @description
-##' This script is used for how to get stringent peakset, weakpeaks set like Musera
-
-library(data.table)
-confirmed_dt <- rbindlist(all_Confirmed,idcol=TRUE)
-discarded_dt <- rbindlist(all_Discarded,idcol=TRUE)
-
-DT <- rbind(confirmed_dt, discarded_dt)
-DT[,gr := ifelse(p.value <= tau.S,"Stringent","Weak"),.id]
-DT[,.id:= gsub("[.](confirmed|discarded)","",.id)]
-res <- by(DT,DT$.id,FUN = function(x) split(x,x$gr))
-
-
-##================================================================================================
-##' @description
-##' This scripts how to manipulate list of confirmed peaks, discarded peaks for BH correction test
-##'
-
-x <- c(.confirmedERs, .discardedERs)
-ans.Reslt <- split(x, sub("_.*", "", names(x)))[sub("_.*", "", names(.confirmedERs))]
-
-##================================================================================================
 .setPurification <- ifelse(replicate.type=="Biological",
                            res <- .Confirmed.ERs,
                            res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
 
-#-------------------------------------------------------------------------------------------------
-# dummy function
-
-func <- function(L1, L2, replicate.type=c("Biological","Technical")) {
-  replicate.type = match.arg(replicate.type)
-  if(replicate.type=="Biological") {
-    res <- L1
-  } else {
-    res <- Map(function(x,y) anti_join(x,y), L1, L2)
-  }
-  return(res)
-}
-
-L1 <- Map("data.frame", confirmed.)
-L2 <- Map("data.frame", discarded.)
-
-# testme:
-.setPurif <- func(L1, L2, "Biological")
-.setPurif <- lapply(.setPurif, function(x) as(x, "GRanges"))
-
+#---------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------
 
 .create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
@@ -307,7 +258,7 @@ DF <- transform(DF, stringency = ifelse(p.value <= tau.s, "Stringent", "Weak"))
 
 ## alternative : I could apply below solution for list of confirmed peaks
 
-junk <- lapply(names(.Confired.ERs), function(nm) {
+res <- lapply(names(.Confired.ERs), function(nm) {
   mapply(export.bed,
          .Confirmed.ERs[[nm]],
          paste0(nm, "_", names(.res_accepted[[nm]]), ".bed"))
