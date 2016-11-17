@@ -151,13 +151,15 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
     saved <- sapply(comb.pval, function(x) x <= tau.s)
     res <- elm[saved]
   })
+
   .Confirmed.ERs <- Map(unlist,
                         mapply(extractList, peakset, Confirmed_idx))
   .Confirmed.ERs[[1L]] <- unique(.Confirmed.ERs[[1L]])
   .Confirmed.ERs <- setnames(.Confirmed.ERs, names(total.ERs))
-  # TODO: export .confirmed.ERs as BED file into desired directory
 
+  # TODO: export .confirmed.ERs as BED file into desired directory
   ##================================================================================
+
   Discarded_idx <- lapply(keepList, function(elm) {
     droped <- sapply(comb.pval, function(x) x > tau.s)
     res <- elm[droped]
@@ -167,8 +169,8 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
   .Discarded.ERs <- suppressWarnings(mapply(c, .init.discPeaks, .Fisher.discPeaks))
   .Discarded.ERs[[1L]] <- unique(.Discarded.ERs[[1L]])
   .Discarded.ERs <- setNames(.Discarded.ERs, names(.Fisher.discPeaks))
-  # TODO : export .discarded.ERs as BED File into desired directory
 
+  # TODO : export .discarded.ERs as BED File into desired directory
   ##-------------------------------------------------------------------------------
   ## Note: to use anti_join function, needed to be casted as data.frame
   .setPurification <- ifelse(replicate.type=="Biological",
@@ -188,7 +190,7 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
       if(is.null(ele_$p.value)) {
         stop("p.value is required")
       } else {
-        o <- ele_$p.value
+        p <- ele_$p.value
         p.adj <- p.adjust(p, method = "BH")
         ele_$p.adj <- p.adj
         .filt <- split(ele_,
@@ -220,29 +222,7 @@ MSPC.Analyzer <- function(peakset, ovHit, replicate.type=c("Biological","Technic
                            res <- .Confirmed.ERs,
                            res <- Map(anti_join, .Confirmed.ERs, .Discarded.ERs))
 
-#---------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------
-
-.create_OUTP <- function(peaks, pAdjustMethod="BH", alpha=0.05, ...) {
-  # input param checking
-  stopifnot(class(peaks)=="GRanges")
-  stopifnot(is.numeric(alpha))
-  pAdjustMethod = match.arg(pAdjustMethod)
-  if(is.null(peaks$p.value)) {
-    stop("required slot is missing")
-  } else {
-    p <- peaks$p.value
-    p.adj <- p.adjust(p, method = pAdjustMethod)
-    peaks$p.adj <- p.adj
-    rslt <- split(peaks, ifelse(peaks$p.adj <= alpha,
-                                "pass", "fail"))
-    return(rslt)
-  }
-}
-
-#' @example
-.BH_output <- Map(.create_OUTP, .setPurif)
-.BH_output <- lapply(.BH_output, unique)
+#-------------------------------------------------------------------------------------------------------
 ##======================================================================================================
 ## generate list of desired output BED files
 
@@ -254,7 +234,7 @@ DF <- transform(DF, stringency = ifelse(p.value <= tau.s, "Stringent", "Weak"))
 
 .res.out <- by(DF, DF[c("letter", "stringency", "confirmed")],
            function(x) export.bed(x[-(1:3)],
-                                 sprintf("%s_%s_%s.csv", x$letter[1], x$stringency[1], x$confirmed[1])))
+                                 sprintf("%s_%s_%s.bed", x$letter[1], x$stringency[1], x$confirmed[1])))
 
 ## alternative : I could apply below solution for list of confirmed peaks
 
