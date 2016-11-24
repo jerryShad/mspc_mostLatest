@@ -1,9 +1,11 @@
 ## MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 ##
 ##' @title .peakOverlapping
+##' @description
+##' more detail description is needed why this function so important in MSPC Packages
 ##' @param peakset peak files
 ##' @param FUN parameter for keeping most stringent peaks or least stringent overlapped peaks
-##' @return IntegerList overlap-hit IntegerList across multiple GRanges simulanously
+##' @return IntegerList list of overlap-hit index
 ##' @export
 ##' @importFrom GenomicRanges findOverlaps
 ##' @importFrom XVector extractList

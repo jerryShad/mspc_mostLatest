@@ -1,15 +1,19 @@
 ## MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 ##
 ##' @title .pvalueCoversion
-##' @param x GRanges objects
-##' @param pvalueBase parameter for user defined pvalue range
+##' @description data conversion
+##' In standard BED file, significant value of peak signal defined as Score column,
+##' so we need to convert it as p.value (- log(p.value), -10 log(p.value), -100 log(p.value))
+##'
+##' @param x GRanges objects set of peak Interval
+##' @param pvalueBase parameter for user defined pvalue format ( - log(p.value), -10 log(p.value), -100 log(p.value))
 ##' @return GRanges
 ##' @export
 ##' @importFrom rtracklayer score
 ##' @importFrom rtracklayer mcols
 ##' @author Julaiti Shayiding
-##' @example
-## .pvalAttr <- .pvalueConversion("", pvalueBase = 1L)
+##' @usage
+##' .pvalueConversion(gr, 1L)
 
 .pvalueConversion <- function(x, pvalueBase = 1L, ...) {
   # input param checking

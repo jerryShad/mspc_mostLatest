@@ -1,9 +1,14 @@
 ## MSPC Package -- Bioconductor Package for Multiple Sample Peak Calling
 ##
 ##' @title .filterByOverlapHit
+##' @description
+##' since we obtained list of overlap-hit index where all possible overlap pair is included, we need to
+##' further investigate hit index with special criteria. we always specially interested in processing each peak interval one by one and
+##' retrive overlapped peaks from other replicates simultanuosly, so we set up experiment to validate the output.
+##'
 ##' @param .ovHit list of overlap hit index
 ##' @param peakset set of peakInterval
-##' @param replicate.type type of replicate user' input
+##' @param replicate.type type of replicate user' input (Biological / Technical replicate)
 ##' @param isSuffOverlap logical vector that check whether sufficient overlap or not
 ##' @return
 ##' @export

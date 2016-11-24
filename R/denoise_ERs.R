@@ -1,8 +1,10 @@
 ## MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 ##
-##' @description implementation for denoise peak interval
 ##' @title .denoise.ERs
-##' @param grs GRangesList with peakInterval
+##' @description
+##' In our method, we set up threshold where extremely weak signal shoud not be proceed and removed as best.
+##' so all background peak signals must be filtered out and exported as BED file.
+##' @param grs GRangesList set of peak intervals
 ##' @param tau.w threshold value for weakly enriched peak
 ##' @param .fileName user can name noise peak by custom which exported as BED file
 ##' @param outDir the folder where noisePeak bed goes
