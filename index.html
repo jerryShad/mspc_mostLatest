@@ -1,0 +1,71 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/github-dark.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>Mspc</title>
+  <meta name="description" content="Bioconductor Package for Multiple Sample Peak Calling">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Mspc</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">Bioconductor Package for Multiple Sample Peak Calling</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/julaiti/MSPC/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/julaiti/MSPC/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/julaiti/MSPC" class="code">View Mspc on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h2>
+<a id="mspc--bioconductor-package-for-multiple-sample-peak-calling" class="anchor" href="#mspc--bioconductor-package-for-multiple-sample-peak-calling" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MSPC : Bioconductor Package for Multiple Sample Peak Calling</h2>
+
+<p>The analysis of ChIP-seq samples outputs a number of enriched regions, each indicating a protein-DNA interaction or a specific chromatin modification. Enriched regions (commonly known as "peaks") are called when the read distribution is significantly different from the background and its corresponding significance measure (p-value) is below a user-defined threshold.</p>
+
+<p>When replicate samples are analysed, overlapping enriched regions are expected. This repeated evidence can therefore be used to locally lower the minimum significance required to accept a peak. Here, we propose a method for joint analysis of weak peaks.</p>
+
+<p>Given a set of peaks from (biological or technical) replicates, the method combines the p-values of overlapping enriched regions: users can choose a threshold on the combined significance of overlapping peaks and set a minimum number of replicates where the overlapping peaks should be present. The method allows the "rescue" of weak peaks occuring in more than one replicate and outputs a new set of enriched regions for each replicate.</p>
+
+<p>MSPC packages implements set of functions to retrieve overlapped enriched regions across multiple replicates in parallel (a.k.a, pair-wise), statistical method for overlapped regions. simultaneous presence of an enriched regions in replicates experiment would justify a local decrease of the stringency criterion, leveraging on the principal that repeated evidence is compensating for weak evidence. This packages jointly analyzes the enriched regions of multiple replicates, distinguishing between biological and technical replicates, and accepting user defined parameters.</p>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/julaiti" class="avatar"><img src="https://avatars0.githubusercontent.com/u/16766975?v=3&amp;s=60" width="48" height="48"></a> <a href="https://github.com/julaiti">julaiti</a> maintains <a href="https://github.com/julaiti/MSPC">Mspc</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/julaiti/MSPC/tarball/master" class="tar">tar</a><a href="https://github.com/julaiti/MSPC/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
