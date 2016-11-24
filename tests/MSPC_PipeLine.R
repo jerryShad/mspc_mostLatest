@@ -338,3 +338,73 @@ res <- lapply(names(.res_accepted), function(nm)
          paste0(nm, "_", names(.res_accepted[[nm]]), ".csv")))
 
 ##------------------------------------------------------------------------------------------------------
+## Generating grouped bar plot, pie chart for exported bed files
+#' @example mini data
+
+savedDF <- list(
+  bar.saved = data.frame(start=sample(100, 15), stop=sample(150, 15), score=sample(36, 15)),
+  cat.saved = data.frame(start=sample(100, 20), stop=sample(100,20), score=sample(45,20)),
+  foo.saved = data.frame(start=sample(125, 24), stop=sample(140, 24), score=sample(32, 24))
+)
+
+dropedDF <- list(
+  bar.droped = data.frame(start=sample(60, 12), stop=sample(90,12), score=sample(35,12)),
+  cat.droped = data.frame(start=sample(75, 18), stop=sample(84,18), score=sample(28,18)),
+  foo.droped = data.frame(start=sample(54, 14), stop=sample(72,14), score=sample(25,14))
+)
+
+comb <- do.call("rbind", c(savedDF, dropedDF))
+cn <- c("letter", "saved","seq")
+DF <- cbind(read.table(text = chartr("_", ".", rownames(comb)), sep = ".", col.names = cn), comb)
+DF <- transform(DF, updown = ifelse(score>= 12, "stringent", "weak"))
+by(DF, DF[c("letter", "saved", "updown")],
+   function(x) write.csv(x[-(1:3)],
+                         sprintf("%s_%s_%s.csv", x$letter[1], x$updown[1], x$saved[1])))
+
+##-----------------------------------------------------------------------------
+## first solution for getting grouped bar plot
+library(dplyr)
+library(ggplot2)
+
+plot_data <- DF %>%
+  group_by(letter, saved, updown) %>%
+  tally
+
+ggplot(plot_data, aes(x = saved, y = n, fill = saved)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~ letter + updown, ncol = 2)
+
+##------------------------------------------------------------------------------
+## or alternative solution for getting bar plot:
+ggplot(plot_data, aes(x = letter, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~updown+saved, ncol = 2)
+
+##------------------------------------------------------------------------------
+## solution for getting pie chart for file bar
+
+ggplot(plot_data, aes(x = 1, y = percentage, fill = letter)) +
+  geom_bar(stat = "identity", width =1) +
+  facet_wrap(~updown+saved, ncol = 2) +
+  coord_polar(theta = "y") +
+  theme_void()
+
+#--------------------------------------------------------------------------------
+## alternative solution for getting pie char in different angle
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+plot_data <- DF %>%
+  unite(interaction, saved, updown, sep = "-") %>%
+  group_by(letter, interaction) %>%
+  tally %>%
+  mutate(percentage = n/sum(n)) %>%
+  filter(letter == "bar")
+
+ggplot(plot_data, aes(x = 1, y = percentage, fill = interaction)) +
+  geom_bar(stat = "identity", width =1) +
+  coord_polar(theta = "y") +
+  theme_void()
+
+#---------------------------------------------------------------------------------
