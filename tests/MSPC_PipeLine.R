@@ -272,6 +272,48 @@ comb.p <- .Fisher.stats(keepList, total.ERs)
 options(scipen = 0)
 fdr.rslt <- .FDR.stats(.Confirmed.ERs, .Discarded.ERs, pAdjustMethod = "BH",
                        .fdr = 0.05, replicate.type = "Biological", outDir = "test/")
+
+##===============================================================================================================
+#' @description generating stack bar plot for output set of BH correction test
+#' result of set purification test must be manipulated in order to generate stack bar plot
+#' @example
+#' cast list of confirmed set as data.frame for the sake of easy manipulation
+
+
+res <- lapply(.setPurf, function(ele_) {
+  if(is.null(ele_$p.value)) {
+    stop("p.value is required")
+  } else {
+    p <- ele_$p.value
+    ele_$p.adj <- p.adjust(p, method = "BH")
+    .filt <- split(ele_,
+                   ifelse(ele_$p.adj <= .fdr,
+                          "BH_Pass", "BH_Failed"))
+  }
+})
+
+DF <- as.data.frame(unlist(lapply(res,function(x) unlist(x))))
+DF$col <- row.names(DF)
+names(DF)[1] <- 'val'
+row.names(DF) <- NULL
+
+DF$col <- gsub(paste("\\.|*[0-9]", lapply(res[[1]], function(x)
+  paste(names(x), collapse = "|"))[1], collapse = "", sep = "|"),"",DF$col)
+DF$letters <- gsub(paste(lapply(res, function(x)
+  paste(names(x), collapse = "|"))[1], collapse = "", sep = "|"),"",DF$col)
+DF$isPassed <- gsub(paste(names(res), collapse = "|"),"",DF$col)
+
+plot_data <- DF %>%
+  group_by(letters, col, isPassed) %>%
+  tally %>%
+  group_by(letters, isPassed) %>%
+  mutate(percentage = n/sum(n), cumsum = cumsum(percentage))
+
+
+library(ggplot2)
+res.Plot <- ggplot(data = plot_data, aes(x = letters,  y=n ,fill = isPassed, width = .85)) +
+  geom_bar(position = "dodge",stat = "identity")
+
 ##===============================================================================================================
 
 options(scipen = 0)
