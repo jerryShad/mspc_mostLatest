@@ -383,70 +383,45 @@ res <- lapply(names(.res_accepted), function(nm)
 ## Generating grouped bar plot, pie chart for exported bed files
 #' @example mini data
 
-savedDF <- list(
-  bar.saved = data.frame(start=sample(100, 15), stop=sample(150, 15), score=sample(36, 15)),
-  cat.saved = data.frame(start=sample(100, 20), stop=sample(100,20), score=sample(45,20)),
-  foo.saved = data.frame(start=sample(125, 24), stop=sample(140, 24), score=sample(32, 24))
+confirmedDF <- list(
+  bar = data.frame(begin=seq(2, by=11, len=25), end=seq(8, by=11, len=25), score=sample(54,25)),
+  cat = data.frame(begin=seq(5, by=8, len=35), end=seq(9, by=8, len=35), score=sample(45,35)),
+  foo = data.frame(begin=seq(8, by=13, len=25), end=seq(17, by=13, len=25), score=sample(49,25))
 )
 
-dropedDF <- list(
-  bar.droped = data.frame(start=sample(60, 12), stop=sample(90,12), score=sample(35,12)),
-  cat.droped = data.frame(start=sample(75, 18), stop=sample(84,18), score=sample(28,18)),
-  foo.droped = data.frame(start=sample(54, 14), stop=sample(72,14), score=sample(25,14))
+discardedDF <- list(
+  bar = data.frame(begin=seq(3, by=12, len=40), end=seq(8, by=12, len=40), score=sample(72,40)),
+  cat = data.frame(begin=seq(9, by=15, len=50), end=seq(17, by=15, len=50), score=sample(60,50)),
+  foo = data.frame(begin=seq(21, by=19, len=30), end=seq(32, by=19, len=30), score=sample(42,30))
 )
 
-comb <- do.call("rbind", c(savedDF, dropedDF))
-cn <- c("letter", "saved","seq")
-DF <- cbind(read.table(text = chartr("_", ".", rownames(comb)), sep = ".", col.names = cn), comb)
-DF <- transform(DF, updown = ifelse(score>= 12, "stringent", "weak"))
-by(DF, DF[c("letter", "saved", "updown")],
-   function(x) write.csv(x[-(1:3)],
-                         sprintf("%s_%s_%s.csv", x$letter[1], x$updown[1], x$saved[1])))
 
-##-----------------------------------------------------------------------------
-## first solution for getting grouped bar plot
-library(dplyr)
-library(ggplot2)
+##-------------------------------------------------------------------------------------------
+library(tidyverse)
+library(magrittr)
 
-plot_data <- DF %>%
-  group_by(letter, saved, updown) %>%
-  tally
+names(confirmedDF) <- paste("confirmed", names(confirmedDF), sep = ".")
+names(discardedDF) <- paste("discarded", names(discardedDF), sep = ".")
+merged <- do.call(rbind, c(confirmedDF, discardedDF))
+merged %<>% rownames_to_column(var = "cn")
+merged %<>% separate(cn, c("original_list", "letters", "seq"), sep = "\\.")
+merged %<>% mutate(stringency = ifelse(score >= 12, "Stringent", "Weak"))
 
-ggplot(plot_data, aes(x = saved, y = n, fill = saved)) +
-  geom_bar(stat = "identity") +
-  facet_wrap(~ letter + updown, ncol = 2)
+res <- merged %>% split(list(.$letters, .$stringency, .$original_list))
 
-##------------------------------------------------------------------------------
-## or alternative solution for getting bar plot:
-ggplot(plot_data, aes(x = letter, y = n)) +
-  geom_bar(stat = "identity") +
-  facet_wrap(~updown+saved, ncol = 2)
+##-------------------------------------------------------------------------------------------
+## nice solution for getting stack bar plot :)
 
-##------------------------------------------------------------------------------
-## solution for getting pie chart for file bar
-
-ggplot(plot_data, aes(x = 1, y = percentage, fill = letter)) +
-  geom_bar(stat = "identity", width =1) +
-  facet_wrap(~updown+saved, ncol = 2) +
-  coord_polar(theta = "y") +
-  theme_void()
-
-#--------------------------------------------------------------------------------
-## alternative solution for getting pie char in different angle
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-
-plot_data <- DF %>%
-  unite(interaction, saved, updown, sep = "-") %>%
-  group_by(letter, interaction) %>%
+res %>%
+  bind_rows %>%
+  group_by(stringency, original_list, letters) %>%
   tally %>%
-  mutate(percentage = n/sum(n)) %>%
-  filter(letter == "bar")
-
-ggplot(plot_data, aes(x = 1, y = percentage, fill = interaction)) +
-  geom_bar(stat = "identity", width =1) +
-  coord_polar(theta = "y") +
-  theme_void()
+  ungroup %>%
+  setNames(c("var", "val", "letters", "n")) %>%
+  {bind_rows(., setNames(., c("val", "var", "letters", "n")))} %>%
+  ggplot(aes(x=var, y=n, fill=val)) +
+  geom_col() +
+  facet_wrap(~letters)+
+  geom_text(aes(label=n), position=position_stack(vjust = 0.5))
 
 #---------------------------------------------------------------------------------
