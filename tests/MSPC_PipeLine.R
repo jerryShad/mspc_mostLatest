@@ -20,7 +20,7 @@
 
 ##--------------------------------------------------------------------------------------------------
 
-readPeakFiles <- function(peakFolder, pvalueBase=1L) {
+readPeakFiles <- function(peakFolder, pvalueBase, ...) {
   # input param checking
   if(missing(peakFolder)) {
     stop("input param is missing!")
@@ -303,16 +303,16 @@ DF$letters <- gsub(paste(lapply(res, function(x)
   paste(names(x), collapse = "|"))[1], collapse = "", sep = "|"),"",DF$col)
 DF$isPassed <- gsub(paste(names(res), collapse = "|"),"",DF$col)
 
-plot_data <- DF %>%
-  group_by(letters, col, isPassed) %>%
+plot_data <- df %>%
+  group_by(col1, col, col2) %>%
   tally %>%
-  group_by(letters, isPassed) %>%
+  group_by(col, col2) %>%
   mutate(percentage = n/sum(n), cumsum = cumsum(percentage))
 
-
 library(ggplot2)
-res.Plot <- ggplot(data = plot_data, aes(x = letters,  y=n ,fill = isPassed, width = .85)) +
-  geom_bar(position = "dodge",stat = "identity")
+ggplot(data = plot_data, aes(x = col1,  y=n,fill = col2, width = .85)) +
+  geom_bar(stat = "identity")+
+  geom_text(aes(label=n), position = position_stack(vjust = .5), hjust = 0.5)
 
 ##===============================================================================================================
 
@@ -338,9 +338,20 @@ create_output <- function(output_path, list1, list2, tau.s) {
   both %<>% separate(cn, c("original_list", "letters", "seq"), sep = "\\.")
   both %<>% mutate(peakStringency = ifelse(p.value <= tau.s , "Stringent", "Weak"))
 
-  list_of_dfs <- both %>% split(list(.$letters, .$peakStringency, .$original_list))
-  csv_names <- paste0(output_path, names(list_of_dfs), ".bed")
-  return(mapply(export.bed, list_of_dfs, csv_names))
+  res <- both %>% split(list(.$letters, .$peakStringency, .$original_list))
+  res %>%
+    bind_rows %>%
+    group_by(peakStringency, original_list, letters) %>%
+    tally %>%
+    ungroup %>%
+    setNames(c("var", "val", "letters", "n")) %>%
+    {
+      bind_rows(., setNames(., c("val", "var", "letters", "n")))
+    } %>%
+    ggplot(aes(x=var, y=n, fill=val)) + geom_col() +
+    facet_wrap(~letters)+ geom_text(aes(label=n), position=position_stack(vjust = 0.5))
+  csv_names <- paste0(output_path, names(res), ".bed")
+  return(mapply(export.bed, res, csv_names))
 }
 
 #' @example
@@ -400,12 +411,15 @@ discardedDF <- list(
 library(tidyverse)
 library(magrittr)
 
+confirmedDF <- lapply(.Confirmed.ERs, as.data.frame)
+discardedDF <- lapply(.Discarded.ERs, as.data.frame)
+
 names(confirmedDF) <- paste("confirmed", names(confirmedDF), sep = ".")
 names(discardedDF) <- paste("discarded", names(discardedDF), sep = ".")
 merged <- do.call(rbind, c(confirmedDF, discardedDF))
 merged %<>% rownames_to_column(var = "cn")
 merged %<>% separate(cn, c("original_list", "letters", "seq"), sep = "\\.")
-merged %<>% mutate(stringency = ifelse(score >= 12, "Stringent", "Weak"))
+merged %<>% mutate(stringency = ifelse(p.value <= 1.0E-08 , "Stringent", "Weak"))
 
 res <- merged %>% split(list(.$letters, .$stringency, .$original_list))
 
@@ -418,7 +432,9 @@ res %>%
   tally %>%
   ungroup %>%
   setNames(c("var", "val", "letters", "n")) %>%
-  {bind_rows(., setNames(., c("val", "var", "letters", "n")))} %>%
+  {
+    bind_rows(., setNames(., c("val", "var", "letters", "n")))
+    } %>%
   ggplot(aes(x=var, y=n, fill=val)) +
   geom_col() +
   facet_wrap(~letters)+
