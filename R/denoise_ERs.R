@@ -2,25 +2,30 @@
 ##
 ##' @title .denoise.ERs
 ##' @description
-##' In our method, we set up threshold where extremely weak signal shoud not be proceed and removed as best.
-##' so all background peak signals must be filtered out and exported as BED file.
-##' @param grs GRangesList set of peak intervals
-##' @param tau.w threshold value for weakly enriched peak
-##' @param .fileName user can name noise peak by custom which exported as BED file
-##' @param outDir the folder where noisePeak bed goes
+##' we set up threshold for signal' significant value of each enriched region,
+##' where extremely weakly enriched regions won't be processed, so we did purification on original input dataset;
+##' Extremenly weakly enriched regions (A.K.A, background noise signals) are exported as standard BED file for the sake of statisitcal learning.
+##' The purpose of exposting noise peak as BED file, we'll evaluate each Chip-seq replicates that bearing different output set with clear evidence.
+##'
+##' @param peakGRs list of Chip-seq replicate imported and all enriched regions stored in GRanges objects
+##' @param tau.w threshold value for weakly enriched peak, all enrichred regions' pvalue above this thrshold, are considered background signal (A.K.A, noise peak)
+##' @param .fileName user has option to name background signal by their own preference.
+##' @param outDir user control where the exported BED files goes
 ##' @param verbose control whether the output is printed or not
-##' @return GRangesList with validated peakInterval
+##' @return GRangesList
 ##' @export
 ##' @importFrom rtracklayer export.bed
 ##' @usage
-##' .denoise.ERs(grs, tau.w, .fileName="", outDir)
+##' .denoise.ERs(peakGRs, tau.w, .fileName="", outDir)
 ##' @author Julaiti Shayiding
 
-
-.denoise.ERs <- function(grs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
+.denoise.ERs <- function(peakGRs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
   # check input param
-  stopifnot(class(grs[[1L]])=="GRanges")
-  stopifnot(length(grs)>0)
+  if (missing(peakGRs)) {
+    stop("Missing required argument peakGRs, please choose imported Chip-seq replicates!")
+  }
+  stopifnot(class(peakGRs[[1L]])=="GRanges")
+  stopifnot(length(peakGRs)>0)
   stopifnot(is.numeric(tau.w))
   if (verbose) {
     cat(">> filter out all background noise peaks whose pvalue above threshold \t\t",
@@ -30,15 +35,15 @@
     dir.create(file.path(outDir))
     setwd(file.path(outDir))
   }
-  res <- lapply(seq_along(grs), function(x) {
-    .gr <- grs[[x]]
-    .grNM <- names(grs)[x]
+  res <- lapply(seq_along(peakGRs), function(x) {
+    .gr <- peakGRs[[x]]
+    .grNM <- names(peakGRs)[x]
     .drop <- .gr[.gr$p.value > tau.w]
     export.bed(.drop, sprintf("%s/%s.%s.bed", outDir, .fileName, .grNM))
     .keep <- .gr[.gr$p.value <= tau.w]
     return(.keep)
   })
-  rslt <- setNames(res, names(grs))
+  rslt <- setNames(res, names(peakGRs))
   return(rslt)
 }
 

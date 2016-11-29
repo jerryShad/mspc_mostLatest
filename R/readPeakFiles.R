@@ -1,22 +1,26 @@
 # MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 #
 #' @title readPeakFiles
-#' @param  peakFolder set of bed files to be read as GRanges objects
-#' @param pvalueBase user can choose the scale of pvalue by custom
+#' @description
+#' readPeakFiles can read peak file in standard BED format and stored in GRanges object,
+#' where several peak files (A.K.A, Chip-seq replicates) can be read simultaneously using lapply
+#' @param peakFolder set of ChipSeq peak replicate in BED format
+#' @param pvalueBase user has options to choose the p-value format(- log(p-value), -10 log(p-value), -100 log(p-value)). By default, use -10 log(p-value) ;
 #' @param verbose logical that control whether the output is printed or not
 #' @return GRanges object
 #' @export
 #' @importFrom rtracklayer import.bed
 #' @importFrom stats setNames
 #' @importFrom tools file_path_sans_ext
-#' @description
-#' reading bed format peak files as GRanges object to ease genomic interval manipulation
 #' @usage
-#' readPeakfiles(peakFolder, pvalueBase)
+#' readPeakFiles(peakFolder = "test/testData/", pvalueBase = 10L, verbose = FALSE)
 #' @author  Julaiti Shayiding
 
 readPeakFiles <- function(peakFolder, pvalueBase = 1L, verbose=FALSE, ...) {
   # input param checking
+  if (missing(peakFolder)) {
+    stop("Missing required argument peakFolder, please choose input Chip-seq replicates in BED file!")
+  }
   if (verbose)
     cat(">> reading all peakfiles from given folder...\t",
         format(Sys.time(), "%Y-%m-%d %X"), "\n")
@@ -34,6 +38,3 @@ readPeakFiles <- function(peakFolder, pvalueBase = 1L, verbose=FALSE, ...) {
   res <- f.read
   return(res)
 }
-
-#' @example
-#' inBED <- readPeakFiles(peakFolder = "test/testData/", pvalueBase=1L,verbose = FALSE)

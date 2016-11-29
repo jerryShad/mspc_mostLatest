@@ -1,34 +1,47 @@
 # MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
 #
-#' @title .create_OUTP
-#' @param peakset_1 list of confirmed peak intervals
-#' @param peakset_2 list of discardedd peak intervals
+#' @description
+#' we distinguish Technical and Biological Chip-seq replicates. Technical replicates aim at controlling
+#' the variability of the experimental procedure used to obtain the data should yield exactly the same result in
+#' the absence of experimental noise. If user choose replicate type as `Technical`,
+#' then enriched regions were passed in one test (A.K.A, comply minimum overlapping peak requirement) but failed the another (A.K.A, combined stringency test with Fisher's method),
+#' these peaks won't be appeared in output set. We call this procedure as .setPurification for list of confirmed peaks and discarded peaks.
+#' Then using the Benjamini-Hochberg multiple testing correction with user-specified false discovery rate to create output set accordingly.
+#' confirmed peak in output set are exported standard BED file.
+#'
+#'
+#' @title .FDR.stats
+#' @param peakList_A set of all confirmed enriched regions. `filterByFisherMethod` return set of confirmed peaks in combined stringency method
+#' @param peakList_B set of all discarded enriched regions. `filterByFisherMethod` return set of discarded peaks in combined stringency method.
 #' @param pAdjustMethod adjusted pvalue for multiple comparison
-#' @param .fdr parameter for false discovery rate
-#' @param replicate.type type of replicate (Biological / Technical replicates)
+#' @param .fdr parameter for false discovery rate. User can tune false discovery rate.#' @param replicate.type A charcter vector used to select type of Chip-seq replicate ( Biological / Technical replicate)
 #' @param outDir user can control where the exported BED file goes
 #'
 #' @return BED file return standard BED File
 #' @export
-#' @importFrom stats, p.adjust
+#' @importFrom stats p.adjust
 #' @importFrom dplyr anti_join
 #' @importFrom rtracklayer export.bed
 #' @author Julaiti Shayiding
 #' @example
 
-.FDR.stats <- function(peakset_1, peakset_2, pAdjustMethod="BH", .fdr = 0.05
+.FDR.stats <- function(peakList_A, peakList_B, pAdjustMethod="BH", .fdr = 0.05
                        , replicate.type=c("Biological", "Technical"), outDir=getwd(), ...) {
   # check input param
-  require(dplyr)
-  #stopifnot(length(peakset)>0)
+  if (missing(peakList_A)) {
+    stop("Missing required argument peakList_A, please choose the list of all confirmed enriched regions in previous workflow!")
+  }
+  if (missing(peakList_B)) {
+    stop("Missing required argument peakList_B, please choose the list of all discarded enriched regions in previous workflow!")
+  }
   pAdjustMethod = match.arg(pAdjustMethod)
   replicate.type = match.arg(replicate.type)
   stopifnot(is.numeric(.fdr))
   message("set purification on set of confirmed, discarded peaks")
-  # peakset_1, peakset_2 must be casted to data.frame
+  # peakset_A, peakset_B must be casted to data.frame
 
-  peakset_1 <- lapply(peakset_1, as.data.frame)
-  peakset_2 <- lapply(peakset_2, as.data.frame)
+  peakset_A <- lapply(peakset_A, as.data.frame)
+  peakset_B <- lapply(peakset_B, as.data.frame)
 
   if (!dir.exists(outDir)) {
     dir.create(file.path(outDir))

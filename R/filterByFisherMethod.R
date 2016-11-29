@@ -1,33 +1,46 @@
 ## MSPC Project -- Bioconductor Packaaage for Multiple Sample Peak Calling
 ##
-##' @title .filterByFisherMethod
 ##' @description
-##' since we are getting combined p.value by Fisher methods, we need to set up second level filtering that
-##' each peaks can be classified as confirmed or discarded . more correct description is needed.
+##' main idea behind out method is that repeated evidence across Chip-seq replicates can compensate for a
+##' lower significance in a single replicate, which is implemented though the Fisher method. The significace of
+##' ovelapping enriched regions is rigorously combined with the Fisher's method to obtain global Fisher score (A.K.A, combined p-value)
+##' to evaluate combined stringency of all enriched regions and classified each peak as confirmed or discarded.
 ##'
-##' @param peakset
-##' @param .ovHit
-##' @param tau.s
-##' @param comb.p
-##' @param isFisherPass
+##' @title .filterByFisherMethod
+##' @param peakset set of pre-processed enriched regions stored in GRanges, where background signal (A.K.A, noise peak) were pre-processed and won't involve further workflow
+##' @param .hitLiist list of overlap hit that set of enriched regions comply minimum overlapping peak requirement.
+##' @param cmbstrgThreshold combined stringency threshold against all enriched regions p-value, and each peaks are classified as confirmed or discarded peak accordingly.
+##' @param isFisherPass logical vector that check whether all enriched regins are passed in Fisher' combined method. TRUE : return GRangesList of all enriched regions are classified as confirmed. FALSE: return GRangesList of all discarded peaks. both is required
 ##' @export
 ##' @importFrom XVector extractList
+##' @importFrom stats setNames
 ##' @author Julaiti Shayiding
-##' @usage
 
-.filterByFisherMethod <- function(peakset, .ovHit, tau.s, comb.p ,isFisherPass, ...) {
-  if(isFisherPass) {
-    lapply.func <- function(ele_) {
+.filterByFisherMethod <- function(peakset, .hitList, cmbstrgThreshold=1.0E-08 ,isFisherPass=c(TRUE, FALSE), ...) {
+  # input param checking
+  if (missing(peakset)) {
+    stop("Missing required argument peakset, please choose the set of pre-processed peaks!")
+  }
+  if (missing(.hitList)) {
+    stop("please choose the set of overlap hit index that comply minimum overlapping peak requirement!")
+  }
+  stopifnot(inherits(peakset[[1L]], "GRanges"))
+  stopifnot(is.numeric(tau.s))
+  stopifnot(class(.hitList[[1L]])=="CompressedIntegerList")
+
+  comb.p <- .Fisher.stats(peakset, .hitList)
+  if(isFisherPass==TRUE) {
+    .filtHelper <- function(ele_) {
       keepMe <- sapply(comb.p, function(x) x<=tau.s)
       res <- ele_[keepMe]
     }
-  } else {
-    lapply.func <- function(ele_) {
+  } else if(isFisherPass==FALSE) {
+    .filtHelper <- function(ele_) {
       drop_ <- sapply(comb.p, function(x) x > tau.s)
       res <- ele_[drop_]
     }
   }
-  .hitIdx <- lapply(.ovHit, lapply.func)
+  .hitIdx <- lapply(.ovHit, .filtHelper)
   .expandAsGR <- Map(unlist,
                      mapply(extractList, peakset, .hitIdx))
   .expandAsGR[[1L]] <- unique(.expandAsGR[[1L]])
