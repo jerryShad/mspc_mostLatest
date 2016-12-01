@@ -1,14 +1,12 @@
-## MSPC Package -- Bioconductor Package for Multiple Sample Peak Calling
-##
-##' @description
+##' Filter ERs by overlap-hit index list
+##'
 ##' Once we obtained list of overlap-hit index where all possible overlap pair is included, we need to
 ##' further investigate hit index with our defined method. In previous workflow, `peakOverlapping` function give us correct geometry of overlap peaks as list-like object by parallel.
-##' we need to do vector sum for getting overall overlaped peak numbers and proceed our evaluation. Where all enriched regions comply minimum required overlap peak requirement,
+##' we need to do vector sum for getting overall overlaped peak numbers and proceed our evaluation. Where all enriched regions comply minimum overlap peak requirement,
 ##' are returned as overlap hit list and used for next workflow, while all enriched regions fail to comply the minimum overlap peak requirement, are returned as GRanges objects.
 ##' Due to further need of evaluating all enriched regions in different level in order to give clear Biological evidence, we decide to expand those overlap hit index as GRanges objects.
 ##'
-##'
-##' @title .filterByOverlapHit
+##' @title filterByOverlapHit
 ##' @param .ovHit list of overlap hit index. Once we obtained overlap hit list by calling `peakOverlapping` function in previous workflow, resuled hit-list ready to be used.
 ##' @param peakset set of Chip-seq replicate imported and all peaks are stored in GRanges object.
 ##' @param replicate.type A charcter vector used to select type of Chip-seq replicate ( Biological / Technical replicate)
@@ -20,7 +18,7 @@
 ##' @importFrom XVector extractList
 ##' @author Julaiti Shayiding
 
-.filterByOverlapHit <- function(.ovHit, peakset, replicate.type=c("Biological", "Technical"),
+filterByOverlapHit <- function(.ovHit, peakset, replicate.type=c("Biological", "Technical"),
                    isSuffOverlap= c(TRUE, FALSE), verbose=FALSE, ...) {
   # check input param
   stopifnot(length(peakset)>0)
@@ -52,6 +50,6 @@
   }
 }
 
-#' @example
-keepList <- func.1(Hit, peakset = total.ERs, replicate.type = "Biological", isSuffOverlap=TRUE)
-initDisc.ERs <- func.1(Hit, peakset = total.ERs, replicate.type = "Biological", isSuffOverlap=FALSE)
+##' @example
+## keepList <- .filterByOverlapHit(Hit, peakset = total.ERs, replicate.type = "Biological", isSuffOverlap=TRUE)
+## initDisc.ERs <- filterByOverlapHit(Hit, peakset = total.ERs, replicate.type = "Biological", isSuffOverlap=FALSE)

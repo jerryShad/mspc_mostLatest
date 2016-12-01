@@ -1,24 +1,25 @@
-##' MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
+##' Combine stringecy test to rigorously combined overlapping peaks
 ##'
-##' @description
 ##' we assess the presence of overlapping enrichred regions across multiple Chip-seq replicates.
-##' The significance of overlapping regions is rigorously combined with Fisher's method
-##' to obtain global Fisher score. However, in next workflow, we are using Fisher combined p-value against combined stringency threshold
+##' Therefore, the significance of overlapping regions is rigorously combined with Fisher's method to obtain global Fisher score.
+##' However, in next workflow, we are using Fisher combined p-value against combined stringency threshold
 ##' to evaluate combined stringency to all enriched regions in second level classification for all enriched regions.
 ##' We set up combined stringency threshold for all enriched regions and getting confirmed / discarded peak set accordingly.
 ##'
-##' @title .Fisher.stats
+##' @title Fisher_stats
+##'
+##' @description
+##' retrieve pvalue of ERs that comply minimum overlapping peak requirement and perfrom Fisher method
+##'
 ##' @param .hitList overlap hit index for all enrichred regions that comply minimum overlapping peak requirement.
 ##' @param peakset set of Chip-seq replicate imported and all peaks are stored in GRanges object, where all background noise pre-processed and won't involve in further downstream analysis.
 ##' @return numeric vector
 ##' @export
 ##' @importFrom metap sumlog
-##' @importFrom XVectors extractList
-##' @usage
+##' @importFrom XVector extractList
 ##' @author Julaiti Shayiding
-##' @example
 
-.Fisher.stats <- function(.hitList, peakset, verbose=FALSE, ...) {
+Fisher_stats <- function(.hitList, peakset, verbose=FALSE, ...) {
   # input param checking
   if (missing(peakset)) {
     stop("Missing required argument peakset, please choose the set of pre-processed peaks!")

@@ -1,13 +1,14 @@
-## MSPC Project -- Bioconductor Package for Multiple Sample Peak Calling
-##
-##' @title create_outputSet
-##' @description
+##' Filter ERs by permissive stringency threshold
+##'
 ##' Chip-seq detects genome-wide DNA protein interation, returing enriched regions which associated with significance score.
 ##' In our methodological framework, we design permissive threshold for all enriched regions' score (A.K.A, peak signal's significance),
-##' to classify each peak as stringent or weakly enriched by its p-value. Once getting set of confirmed, discarded enriched regions for all Chip-seq replicates,
+##' to classify each peak as stringent or weakly enriched by its p-value.Once getting set of confirmed, discarded enriched regions for all Chip-seq replicates,
 ##' it is intuitive to generate stringent, weak peak set accordingly. To help user gaining deeper insight and biological evaluation of analysis result,
 ##' graphical visualization of corresponding peak set also created by handy.
 ##'
+##' @title create_output
+##' @description
+##' create stringnet/weak ERs by permissive stringent threshold
 ##'
 ##' @param peaklist_A set of confirmed enriched regions for all Chip-seq replicates
 ##' @param peaklist_B set of discarded enriched regions for all Chip-seq replicates
@@ -16,7 +17,7 @@
 ##' @return BED file
 ##' @export
 ##' @importFrom rtracklayer export.bed
-##' @import magrittr %>%
+##' @importFrom magrittr %>%
 ##' @importFrom magrittr %<>%
 ##' @importFrom tibble rownames_to_column
 ##' @importFrom tidyr separate
@@ -26,11 +27,9 @@
 ##' @importFrom dplyr tally
 ##' @importFrom dplyr ungroup
 ##' @importFrom ggplot2 ggplot
-##' @usage
-##' create_output(peakList_A = confirmedERs, peakList_B = discardedERs, tau.s = 1.0E-08, output_path ="test/")
 ##' @author Julaiti Shayiding
+## create_output(peakList_A = confirmedERs, peakList_B = discardedERs, tau.s = 1.0E-08, output_path ="test/")
 
-options(scipen = 0)
 
 create_output <- function(peakList_A, peakList_B , tau.s=1.0E-08, output_path=getwd(), ...) {
   # input param checking
@@ -70,6 +69,5 @@ create_output <- function(peakList_A, peakList_B , tau.s=1.0E-08, output_path=ge
   return(mapply(export.bed, combDF, out_names))
 }
 
-#' @example
-options(scipen = 0)
-create_output(peakList_A = confirmedERs, peakList_B = discardedERs, tau.s = 1.0E-08, output_path ="test/")
+##' @example
+## create_output(peakList_A = confirmedERs, peakList_B = discardedERs, tau.s = 1.0E-08, output_path ="test/")

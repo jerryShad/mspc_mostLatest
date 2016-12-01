@@ -1,31 +1,31 @@
-# MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
-#
-#' @description
-#' we distinguish Technical and Biological Chip-seq replicates. Technical replicates aim at controlling
-#' the variability of the experimental procedure used to obtain the data should yield exactly the same result in
-#' the absence of experimental noise. If user choose replicate type as `Technical`,
-#' then enriched regions were passed in one test (A.K.A, comply minimum overlapping peak requirement) but failed the another (A.K.A, combined stringency test with Fisher's method),
-#' these peaks won't be appeared in output set. We call this procedure as .setPurification for list of confirmed peaks and discarded peaks.
-#' Then using the Benjamini-Hochberg multiple testing correction with user-specified false discovery rate to create output set accordingly.
-#' confirmed peak in output set are exported standard BED file.
-#'
-#'
-#' @title .FDR.stats
-#' @param peakList_A set of all confirmed enriched regions. `filterByFisherMethod` return set of confirmed peaks in combined stringency method
-#' @param peakList_B set of all discarded enriched regions. `filterByFisherMethod` return set of discarded peaks in combined stringency method.
-#' @param pAdjustMethod adjusted pvalue for multiple comparison
-#' @param .fdr parameter for false discovery rate. User can tune false discovery rate.#' @param replicate.type A charcter vector used to select type of Chip-seq replicate ( Biological / Technical replicate)
-#' @param outDir user can control where the exported BED file goes
-#'
-#' @return BED file return standard BED File
-#' @export
-#' @importFrom stats p.adjust
-#' @importFrom dplyr anti_join
-#' @importFrom rtracklayer export.bed
-#' @author Julaiti Shayiding
-#' @example
+##' Intermediate set purification and to create output set through BH correction test
+##'
+##' We distinguish Technical and Biological Chip-seq replicates. Technical replicates aim at controlling
+##' the variability of the experimental procedure used to obtain the data should yield exactly the same result in
+##' the absence of experimental noise. If user choose replicate type as `Technical`,
+##' then enriched regions were passed in one test (A.K.A, comply minimum overlapping peak requirement) but failed the another (A.K.A, combined stringency test with Fisher's method),
+##' these peaks won't be appeared in final output set. We call this procedure as intermediate set purification. I believe using comparing list-like data structure is intuitive and fast,
+##' using `anti_join` method from dplyr packages made this job easily. Then using the Benjamini-Hochberg multiple testing correction with user-specified false discovery rate to create output set accordingly.
+##' confirmed peak in output set are exported standard BED file.
+##'
+##' @title FDR_stats
+##'
+##' @description proceed set purification for set of ERs and create output set
+##'
+##' @param peakList_A set of all confirmed enriched regions. `filterByFisherMethod` return set of confirmed peaks in combined stringency method
+##' @param peakList_B set of all discarded enriched regions. `filterByFisherMethod` return set of discarded peaks in combined stringency method.
+##' @param pAdjustMethod adjusted pvalue for multiple comparison
+##' @param .fdr parameter for false discovery rate. User can tune false discovery rate.#' @param replicate.type A charcter vector used to select type of Chip-seq replicate ( Biological / Technical replicate)
+##' @param outDir user can control where the exported BED file goes
+##'
+##' @return BED file
+##' @export
+##' @importFrom stats p.adjust
+##' @importFrom dplyr anti_join
+##' @importFrom rtracklayer export.bed
+##' @author Julaiti Shayiding
 
-.FDR.stats <- function(peakList_A, peakList_B, pAdjustMethod="BH", .fdr = 0.05
+FDR_stats <- function(peakList_A, peakList_B, pAdjustMethod="BH", .fdr = 0.05
                        , replicate.type=c("Biological", "Technical"), outDir=getwd(), ...) {
   # check input param
   if (missing(peakList_A)) {
@@ -38,18 +38,19 @@
   replicate.type = match.arg(replicate.type)
   stopifnot(is.numeric(.fdr))
   message("set purification on set of confirmed, discarded peaks")
-  # peakset_A, peakset_B must be casted to data.frame
+  # peakList_A, peakList_B must be casted to data.frame
 
-  peakset_A <- lapply(peakset_A, as.data.frame)
-  peakset_B <- lapply(peakset_B, as.data.frame)
+
+  peakList_A <- lapply(peakList_A, as.data.frame)
+  peakList_B <- lapply(peakList_B, as.data.frame)
 
   if (!dir.exists(outDir)) {
     dir.create(file.path(outDir))
   }
   if(replicate.type=="Biological") {
-    .setPurf <- peakset_1
+    .setPurf <- peakList_A
   } else {
-    .setPurf <- Map(anti_join, peakset_1, peakset_2)
+    .setPurf <- Map(anti_join, peakList_A, peakList_B)
   }
   .setPurf <- lapply(.setPurf, function(x) as(x, "GRanges"))
   res <- lapply(.setPurf, function(ele_) {
@@ -72,6 +73,6 @@
   return(rslt)
 }
 
-#' @example
-fdr.rslt <- .FDR.stats(.Confirmed.ERs, .Discarded.ERs, pAdjustMethod = "BH",
-                       .fdr = 0.05, replicate.type = "Bio", outDir = "test/")
+##' @example
+## fdr.rslt <- .FDR.stats(.Confirmed.ERs, .Discarded.ERs, pAdjustMethod = "BH",
+##                       .fdr = 0.05, replicate.type = "Bio", outDir = "test/")

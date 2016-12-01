@@ -1,12 +1,11 @@
-## MSPC Project - Bioconductor Package for Multiple Sample Peak Calling
-##
-##' @title .denoise.ERs
-##' @description
+##' pre-process set of Chip-seq replicate & exclude all noise peak from samples
+##'
 ##' we set up threshold for signal' significant value of each enriched region,
 ##' where extremely weakly enriched regions won't be processed, so we did purification on original input dataset;
-##' Extremenly weakly enriched regions (A.K.A, background noise signals) are exported as standard BED file for the sake of statisitcal learning.
+##' Extremenly weakly enriched regions (A.K.A, background noise signals) are exported as standard BED file for the sake of giving clear biological evidence.
 ##' The purpose of exposting noise peak as BED file, we'll evaluate each Chip-seq replicates that bearing different output set with clear evidence.
 ##'
+##' @title denoise_ERs
 ##' @param peakGRs list of Chip-seq replicate imported and all enriched regions stored in GRanges objects
 ##' @param tau.w threshold value for weakly enriched peak, all enrichred regions' pvalue above this thrshold, are considered background signal (A.K.A, noise peak)
 ##' @param .fileName user has option to name background signal by their own preference.
@@ -15,11 +14,9 @@
 ##' @return GRangesList
 ##' @export
 ##' @importFrom rtracklayer export.bed
-##' @usage
-##' .denoise.ERs(peakGRs, tau.w, .fileName="", outDir)
 ##' @author Julaiti Shayiding
 
-.denoise.ERs <- function(peakGRs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
+denoise_ERs <- function(peakGRs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
   # check input param
   if (missing(peakGRs)) {
     stop("Missing required argument peakGRs, please choose imported Chip-seq replicates!")
@@ -48,4 +45,4 @@
 }
 
 #' @example
-total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-04, .fileName = "noisePeak", outDir = "test/")
+# total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-04, .fileName = "noisePeak", outDir = "test/")
