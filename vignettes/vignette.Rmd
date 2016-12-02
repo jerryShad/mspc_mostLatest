@@ -2,15 +2,8 @@
 title: "MSPC Pakcage user's guide"
 author: "Julaiti Shayiding"
 date: "`r Sys.Date()`"
-package: "`r pkg_ver('MSPC')`"
-abstract: >
-This packages implements set of functions to retrieve overlapped enriched regions across multiple replicates in parallel (a.k.a, pair-wise), statistical method for overlapped regions. Simultaneous presence of an enriched regions in replicates experiment would justify a local decrease of the stringency criterion, leveraging on the principal that repeated evidence is compensating for weak evidence. This packages jointly analyzes the enriched regions of multiple replicates, distinguishing between biological and technical replicates, and accepting user defined parameters.
   
-output: 
-  BiocStyle::html_document:
-    toc: true
-  BiocStyle::pdf_document:
-    toc: true
+output: BiocStyle::pdf_document
 vignette: >
   %\VignetteIndexEntry{MAPC Vignette}
   %\VignetteEngine{knitr::rmarkdown}
@@ -24,7 +17,12 @@ knitr::opts_chunk$set(tidy         = FALSE,
                       message      = FALSE)
 ```
 
-# Abstract
+
+# Abstract -- MSPC
+
+This packages implements set of functions to retrieve overlapped        enriched regions across multiple replicates in parallel (a.k.a,     pair-wise), statistical method for overlapped regions.              Simultaneous presence of an enriched regions in replicates          experiment would justify a local decrease of the stringency         criterion, leveraging on the principal that repeated evidence is    compensating for weak evidence. This packages jointly analyzes the   enriched regions of multiple replicates, distinguishing between     biological and technical replicates, and accepting user defined     parameters.
+
+## Abstract
 
 The primary emphasis of **MSPC** package is to rescue weakly enriched regions in single sample by co-localized overlapping evidence in multiple Chip-seq replicates.Simultaneous presence of an enriched regions in replicates experiment would justify a local decrease of the stringency criterion, leveraging on the principal that repeated evidence is compensating for weak evidence. We assess the presense of overlapping enriched regions across multiple replicates. The significance of overlapping regions is rigorously combined with Fisher method to obtain global score.Using Fisher method to combine ER evidence across replicates in order to increase the statistical significance of the ERs detected in the Chip-seq experiment; it assigns ERs to different sets, and in addition provides analysis features that allow performing further assessments and functional analyses on the identified ERs.
 
@@ -45,9 +43,11 @@ This workflow show how to read Genomic data set to `GRanges` objects. The first,
 
 ```{r}
 library(MSPC)
-inputData <- readPeakFiles(peakFolder = "test/testData/", pvalueBase = 1L, verbose = FALSE)
+extdata.dir <- system.file(package = "MSPC","extdata")
+bedfiles <- dir(extdata.dir, pattern="\\.bed$", full.names=TRUE)
+myData <- readPeakFiles(peakFolder = bedfiles, pvalueBase = 1L, verbose = FALSE)
 
-inputData
+myData
 ```
 
 ## pre-process input Chip-seq replicates & clean background noise
@@ -58,7 +58,7 @@ Initial workflow, we set up permissive threshold for signal' significant value o
 
 ```{r}
 ## original Chip-seq replicates are imported as S4 object, GRanges
-total.ERs <- denoise_ERs(inputData, tau.w = 1.0E-04, .fileName = "noiseER", outDir = "", verbose = FALSE)
+total.ERs <- denoise_ERs(peakGRs = inputData, tau.w = 1.0E-04, .fileName = "noiseER", outDir = "", verbose = FALSE)
 
 total.ERs
 ```
@@ -125,87 +125,3 @@ parameter `peakList_A` is set of all confirmed enriched regions, `peakList_B` is
 ## brief summary of MSPC Packages
 
 ## Reference
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
-
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
-```
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**. `> special thanks to Martin Morgan solution on support site`
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
-
-Also a quote using `>`:
-
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
