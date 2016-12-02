@@ -58,7 +58,7 @@ Initial workflow, we set up permissive threshold for signal' significant value o
 
 ```{r}
 ## original Chip-seq replicates are imported as S4 object, GRanges
-total.ERs <- denoise_ERs(peakGRs = inputData, tau.w = 1.0E-04, .fileName = "noiseER", outDir = "", verbose = FALSE)
+total.ERs <- denoise_ERs(peakGRs = myData, tau.w = 1.0E-04, .fileName = "noiseER", outDir = "", verbose = FALSE)
 
 total.ERs
 ```
