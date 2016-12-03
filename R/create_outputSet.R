@@ -27,6 +27,10 @@
 ##' @importFrom dplyr tally
 ##' @importFrom dplyr ungroup
 ##' @importFrom ggplot2 ggplot
+##' @importFrom ggplot2 geom_col
+##' @importFrom ggplot2 facet_wrap
+##' @importFrom ggplot2 geom_text
+##'
 ##' @author Julaiti Shayiding
 ## create_output(peakList_A = confirmedERs, peakList_B = discardedERs, tau.s = 1.0E-08, output_path ="test/")
 

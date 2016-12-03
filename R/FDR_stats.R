@@ -23,6 +23,7 @@
 ##' @importFrom stats p.adjust
 ##' @importFrom dplyr anti_join
 ##' @importFrom rtracklayer export.bed
+##' @importFrom rtracklayer as.data.frame
 ##' @author Julaiti Shayiding
 
 FDR_stats <- function(peakList_A, peakList_B, pAdjustMethod="BH", .fdr = 0.05

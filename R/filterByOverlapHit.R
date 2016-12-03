@@ -16,6 +16,7 @@
 ##' @importFrom S4Vectors Reduce
 ##' @importFrom S4Vectors lengths
 ##' @importFrom XVector extractList
+##' @importFrom BiocGenerics Map
 ##' @author Julaiti Shayiding
 
 filterByOverlapHit <- function(.ovHit, peakset, replicate.type=c("Biological", "Technical"),

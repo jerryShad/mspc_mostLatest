@@ -1,4 +1,4 @@
-##' asess peak overlapping across multiple Chip-seq replicate
+##' Asess peak overlapping across multiple Chip-seq replicate
 ##'
 ##' we assess the presense of overlapping enriched regions across multiple Chip-seq replicates.
 ##' Each enriched regions in current replicates (A.K.A, chosen replicates) is evaluated
@@ -20,6 +20,10 @@
 ##' @importFrom GenomicRanges findOverlaps
 ##' @importFrom XVector extractList
 ##' @importfrom rtracklayer score
+##' @importFrom IRanges which.max
+##' @importFrom IRanges which.min
+##' @importFrom S4Vectors DataFrame
+##' @importFrom IRanges as.matrix
 ##' @author Julaiti Shayiding
 
 peakOverlapping <- function(peakset, FUN=which.max, ...) {

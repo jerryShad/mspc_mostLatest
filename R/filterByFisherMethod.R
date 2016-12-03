@@ -16,6 +16,7 @@
 ##' @export
 ##' @importFrom XVector extractList
 ##' @importFrom stats setNames
+##' @importFrom BiocGenerics Map
 ##' @author Julaiti Shayiding
 
 filterByFisherMethod <- function(peakset, .hitList, cmbstrgThreshold=1.0E-08 ,isFisherPass=c(TRUE, FALSE), ...) {

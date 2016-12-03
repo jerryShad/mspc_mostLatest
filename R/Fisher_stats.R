@@ -17,6 +17,9 @@
 ##' @export
 ##' @importFrom metap sumlog
 ##' @importFrom XVector extractList
+##' @importFrom rtracklayer as.data.frame
+##' @importFrom IRanges as.matrix
+##'
 ##' @author Julaiti Shayiding
 
 Fisher_stats <- function(.hitList, peakset, verbose=FALSE, ...) {

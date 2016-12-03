@@ -1,9 +1,9 @@
-##' pre-process set of Chip-seq replicate & exclude all noise peak from samples
+##' pre-processing set of Chip-seq replicate & exclude all noise peak from samples
 ##'
 ##' we set up threshold for signal' significant value of each enriched region,
 ##' where extremely weakly enriched regions won't be processed, so we did purification on original input dataset;
 ##' Extremenly weakly enriched regions (A.K.A, background noise signals) are exported as standard BED file for the sake of giving clear biological evidence.
-##' The purpose of exposting noise peak as BED file, we'll evaluate each Chip-seq replicates that bearing different output set with clear evidence.
+##' The purpose of exposting noise peak as BED file, we'll evaluate each Chip-seq replicates that bearing different output set with clear biological evidence.
 ##'
 ##' @title denoise_ERs
 ##' @param peakGRs list of Chip-seq replicate imported and all enriched regions stored in GRanges objects
@@ -14,6 +14,7 @@
 ##' @return GRangesList
 ##' @export
 ##' @importFrom rtracklayer export.bed
+##' @importFrom stats setNames
 ##' @author Julaiti Shayiding
 
 denoise_ERs <- function(peakGRs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), verbose=FALSE, ...) {
@@ -21,7 +22,7 @@ denoise_ERs <- function(peakGRs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), v
   if (missing(peakGRs)) {
     stop("Missing required argument peakGRs, please choose imported Chip-seq replicates!")
   }
-  stopifnot(class(peakGRs[[1L]])=="GRanges")
+  stopifnot(inherits(peakGRs[[1L]], "GRanges"))
   stopifnot(length(peakGRs)>0)
   stopifnot(is.numeric(tau.w))
   if (verbose) {
@@ -44,5 +45,5 @@ denoise_ERs <- function(peakGRs, tau.w= 1.0E-04, .fileName="", outDir=getwd(), v
   return(rslt)
 }
 
-#' @example
-# total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-04, .fileName = "noisePeak", outDir = "test/")
+##' @example
+##' total.ERs <- .denoise.ERs(myData, tau.w = 1.0E-04, .fileName = "noisePeak", outDir = "test/")
